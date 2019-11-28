@@ -1,8 +1,6 @@
 import time
-
 import psutil
 import requests
-
 import Myconfig
 import Mylogger
 import globalvar as gl

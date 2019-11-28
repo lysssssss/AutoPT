@@ -80,6 +80,6 @@ class MyApp(wx.App):
         MyFrame()
         return True
 
-# if __name__ == "__main__":
-#     app = MyApp()
-#     app.MainLoop()
+if __name__ == "__main__":
+    app = MyApp()
+    app.MainLoop()

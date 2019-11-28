@@ -1,10 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-#
-# Copyright © 2018 Yongwen Zhuang <zeoman@163.com>
-#
-# Distributed under terms of the MIT license.
-
 """
 Byr
 自动从bt.byr.cn上下载免费种子文件，保存到指定位置
