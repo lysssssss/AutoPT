@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#myrules
+.idea/
+*.log*
+*.txt
+*.csv
+cookie
+*.torrent
 # C extensions
 *.so
 
