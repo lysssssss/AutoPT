@@ -5,22 +5,20 @@ Author: LYS
 Create: 2019年11月13日
 """
 import os
+import pickle
 import random
 import time
-from PIL import Image
 from io import BytesIO
-import pickle
-from urllib.parse import urlparse, parse_qs
-import requests
-from bs4 import BeautifulSoup
 from urllib.parse import unquote
-import BGIcon
-from threading import Thread
-import Mylogger
-import Myconfig
-import globalvar as gl
+from urllib.parse import urlparse, parse_qs
+
+import requests
+from PIL import Image
+from bs4 import BeautifulSoup
+
 import QBmana
 import TorrentHash
+import globalvar as gl
 
 
 class Byr(object):
@@ -176,16 +174,18 @@ class Byr(object):
                             if req_dl.status_code == 200:
                                 if self.qbapi.checksize(page.size):
                                     self.qbapi.addtorrent(req_dl.content, thash)
-                                    self.list.append(page.id)
                                 else:
                                     self.logger.warning('Check size fail:' + page.id + ',' + page.name + ','
                                                         + page.type + ',' + str(page.size) + 'GB,'
                                                         + str(page.seeders) + ',' + str(page.snatched))
+
                                 f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,'
                                         + str(page.seeders) + ','
                                         + str(thash) + '\n')
+                                self.list.append(page.id)
                                 # 防反爬虫
                                 time.sleep(3)
+
                             else:
                                 self.logger.error('Download Error:' + page.id + ',' + page.name + ','
                                                   + page.type + ',' + str(page.size) + 'GB,'
@@ -268,36 +268,3 @@ class ByrPage(object):
         else:
             size = float(text[:-2].replace(',', ''))
         return size
-
-
-def run():
-    b = Byr()
-    while thread_flag:
-        b.start()
-        waittime = gl.get_value('config').intervaltime
-        while thread_flag and waittime > 0:
-            time.sleep(1)
-            waittime -= 1
-    # time.sleep(3)
-    # app.ExitMainLoop()
-
-
-if __name__ == '__main__':
-    thread_flag = True
-    # t = Thread(target=run)
-    #
-    # myconfig = Myconfig.config()
-    # mylogger = Mylogger.mylogger()
-
-    gl._init()
-    gl.set_value('thread', Thread(target=run))
-    gl.set_value('config', Myconfig.Config())
-    gl.set_value('logger', Mylogger.Mylogger())
-    gl.get_value('logger').logger.info('程序启动')
-
-    gl.get_value('thread').start()
-
-    app = BGIcon.MyApp()
-
-    app.MainLoop()
-    thread_flag = False
