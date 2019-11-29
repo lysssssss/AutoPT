@@ -81,13 +81,21 @@ class QBAPI(object):
                 return False
         return res
 
+    def diskdelay(self, fsize):
+        # 根据删除的大小来判断删除时间
+        t = int(fsize / 10) + 1  # 假设每删除10GB要1秒
+        time.sleep(t)
+
     def deletetorrent(self, stlist):
         ret = True
         for val in stlist:
-            info = self.get_url('/api/v2/torrents/delete?hashes=' + val + '&deleteFiles=true')
+            filescount = self.gettorrentcontent(val[0])
+            info = self.get_url('/api/v2/torrents/delete?hashes=' + val[0] + '&deleteFiles=true')
             if info.status_code == 200:
                 self.logger.info('delete torrent success , torrent hash =' + str(val))
-                time.sleep(5)
+                # 每一个文件删除1秒
+                time.sleep(filescount)
+                # self.diskdelay(val[1])
             else:
                 ret = False
                 self.logger.error(
@@ -117,7 +125,7 @@ class QBAPI(object):
             infinte_lastactivity.sort(key=lambda x: x['added_on'])
             # print (infinte_lastactivity)
             for val in infinte_lastactivity:
-                d_list.append(val['hash'])
+                d_list.append([val['hash'], val['size'] / 1024 / 1024 / 1024])
                 deletesize -= val['size'] / 1024 / 1024 / 1024
                 self.logger.info(
                     'select torrent name:\"' + val['name'] + '\"  size=' + str(val['size'] / 1024 / 1024 / 1024) + 'GB')
@@ -131,7 +139,7 @@ class QBAPI(object):
                                   now - val['added_on'] > gl.get_value('config').keeptorrenttime * 60 * 60]
             other_lastactivity.sort(key=lambda x: x['last_activity'])
             for val in other_lastactivity:
-                d_list.append(val['hash'])
+                d_list.append([val['hash'], val['size'] / 1024 / 1024 / 1024])
                 deletesize -= val['size'] / 1024 / 1024 / 1024
                 self.logger.info(
                     'select torrent name:\"' + val['name'] + '\"  size=' + str(val['size'] / 1024 / 1024 / 1024) + 'GB')
@@ -183,6 +191,19 @@ class QBAPI(object):
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
             return []
+
+    def gettorrentcontent(self, thash):
+        info = self.get_url('/api/v2/torrents/files?hash=' + thash)
+        self.logger.debug('status code = ' + str(info.status_code))
+        if info.status_code == 200:
+            listjs = info.json()
+            filescount = len(listjs)
+            self.logger.debug('filescount:' + str(filescount))
+            return filescount
+        elif info.status_code == 404:
+            self.logger.error('Torrent hash was not found')
+        # 默认只有一个文件
+        return 1
 
     def edittorrenttracker(self, thash, origin, new):
         info = self.get_url('/api/v2/torrents/editTracker?hash=' + thash +
@@ -246,6 +267,7 @@ class QBAPI(object):
 
             if info.status_code == 200:
                 self.logger.info('addtorrent  successfully info hash = ' + thash)
+                time.sleep(5)
                 # info = self.get_url('/api/v2/torrents/info?sort=added_on&reverse=true')
                 #
                 # if info.status_code == 200:
@@ -279,4 +301,4 @@ if __name__ == '__main__':
     gl.set_value('config', Myconfig.Config())
     gl.set_value('logger', Mylogger.Mylogger())
     api = QBAPI()
-    api.checktorrenttracker('bf004235c8c6dd62c33865a10937e97995f908c20')
+    api.gettorrentcontent('518c06ad1a248bf5d042c226cd70a1707b187b79')
