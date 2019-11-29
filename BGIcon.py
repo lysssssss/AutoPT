@@ -1,5 +1,6 @@
 import wx
 import wx.adv
+
 import globalvar as gl
 
 
@@ -12,13 +13,9 @@ class ClockWindow(wx.Window):
         self.timer.Start(1000)
 
     def OnTimer(self, event):
-        # print(gl.get_value('thread').is_alive())
         if gl.get_value('thread').is_alive():
             pass
         else:
-            # pass
-            # wx.PostEvent(self.GetEventHandler(), wx.CloseEvent)
-            # self.Destroy()
             self.logger.info('检测到线程关闭，异常退出')
             wx.Exit()
 
@@ -79,6 +76,7 @@ class MyApp(wx.App):
     def OnInit(self):
         MyFrame()
         return True
+
 
 if __name__ == "__main__":
     app = MyApp()

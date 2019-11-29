@@ -1,5 +1,6 @@
-from logging import handlers
 import logging
+from logging import handlers
+
 import globalvar as gl
 
 

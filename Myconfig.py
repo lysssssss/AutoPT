@@ -1,6 +1,7 @@
 import json
-from jsmin import jsmin
 import os
+
+from jsmin import jsmin
 
 
 class Config(object):

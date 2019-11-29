@@ -11,6 +11,8 @@ __pycache__/
 *.csv
 cookie
 *.torrent
+
+
 # C extensions
 *.so
 

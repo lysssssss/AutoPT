@@ -1,11 +1,14 @@
+import os
 import time
+from os.path import join, getsize
+
 import psutil
 import requests
+
 import Myconfig
 import Mylogger
 import globalvar as gl
-import os
-from os.path import join, getsize
+
 
 class QBAPI(object):
 
@@ -214,7 +217,7 @@ class QBAPI(object):
             listjs = info.json()
             tname = listjs[0]['name']
             self.logger.debug('torrent name:' + tname)
-            return  tname
+            return tname
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
         return ''
@@ -356,7 +359,7 @@ class QBAPI(object):
             self.logger.info('get preferences successfully')
             listjs = info.json()
             return listjs
-        #qbt web访问失败
+        # qbt web访问失败
         exit(3)
 
     def getincomplete_files_ext(self):
@@ -368,6 +371,6 @@ if __name__ == '__main__':
     gl.set_value('config', Myconfig.Config())
     gl.set_value('logger', Mylogger.Mylogger())
     api = QBAPI()
-    #api.gettorrentcontent('518c06ad1a248bf5d042c226cd70a1707b187b79')
+    # api.gettorrentcontent('518c06ad1a248bf5d042c226cd70a1707b187b79')
     # print('getdirsize' + str(api.getdirsize('E:\PT Downloads\Seven Seconds S01 2160p NF WEB-DL HEVC 10bit HDR DDP5.1-TrollUHD')))
     api.checksize(123)

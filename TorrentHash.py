@@ -1,5 +1,7 @@
-import magneturi
 import base64
+
+import magneturi
+
 import globalvar as gl
 
 
