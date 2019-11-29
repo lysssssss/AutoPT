@@ -4,7 +4,8 @@ import requests
 import Myconfig
 import Mylogger
 import globalvar as gl
-
+import os
+from os.path import join, getsize
 
 class QBAPI(object):
 
@@ -26,6 +27,7 @@ class QBAPI(object):
         self.checktrackerhttps = gl.get_value('config').checktrackerhttps
         self.diskletter = ''
         self.checkcategory()
+        self.incomplete_files_ext = self.getincomplete_files_ext()
 
     def checkcategory(self):
         if self.maincategory == '':
@@ -59,15 +61,17 @@ class QBAPI(object):
             self.logger.info('QBAPI check filesize =' + str(filesize) + 'GB')
 
             gtl = self.gettorrentlist()
-            totalsize = self.gettotalsize(gtl)
+            nowtotalsize, pretotalsize = self.gettotalsize(gtl)
+            self.logger.debug('nowtotalsize =' + str(nowtotalsize) + 'GB')
+            self.logger.debug('pretotalsize =' + str(pretotalsize) + 'GB')
 
             diskremainsize = 1048576  # 设置无穷大的磁盘大小为1PB=1024*1024GB
             if self.diskletter != '':
-                # 留出3G容量防止空间分配失败
-                diskremainsize = self.getdisksize(self.diskletter) - 3
+                # 留出1G容量防止空间分配失败
+                diskremainsize = self.getdiskleftsize(self.diskletter) - 1 - (pretotalsize - nowtotalsize)
                 self.logger.info('diskremainsize =' + str(diskremainsize) + 'GB')
             self.dynamiccapacity = gl.get_value('config').capacity \
-                if totalsize + diskremainsize > gl.get_value('config').capacity else totalsize + diskremainsize
+                if pretotalsize + diskremainsize > gl.get_value('config').capacity else pretotalsize + diskremainsize
             self.logger.info('dynamiccapacity =' + str(self.dynamiccapacity) + 'GB')
 
             if filesize > self.dynamiccapacity:
@@ -75,7 +79,7 @@ class QBAPI(object):
                                     str(self.dynamiccapacity) + 'GB)')
                 return False
 
-            stlist, res = self.selecttorrent(filesize, gtl, totalsize)
+            stlist, res = self.selecttorrent(filesize, gtl, pretotalsize)
             if not self.deletetorrent(stlist):
                 self.logger.error('Error when delete torrent')
                 return False
@@ -103,12 +107,16 @@ class QBAPI(object):
         return ret
 
     def gettotalsize(self, gtl):
-        sumsize = 0
+        predict_sumsize = 0
+        now_sumsize = 0
         for val in gtl:
-            sumsize += val['size']
-        sumsize /= (1024 * 1024 * 1024)
-        self.logger.info('torrent sum size =' + str(sumsize) + 'GB')
-        return sumsize
+            predict_sumsize += val['size']
+            now_sumsize += val['size'] if val['progress'] == 1 else self.getdirsize(val['save_path'] + val['name'])
+        now_sumsize /= (1024 * 1024 * 1024)
+        predict_sumsize /= (1024 * 1024 * 1024)
+        self.logger.info('predict torrent sum size =' + str(predict_sumsize) + 'GB')
+        self.logger.info('now torrent sum size =' + str(now_sumsize) + 'GB')
+        return now_sumsize, predict_sumsize
 
     def selecttorrent(self, filesize, gtl, totalsize):
         deletesize = totalsize + filesize - self.dynamiccapacity
@@ -179,6 +187,37 @@ class QBAPI(object):
             listjs = info.json()
             return len(listjs) > 0
         return False
+
+    def gettorrentdlstatus(self, thash):
+        info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
+        self.logger.debug('status code = ' + str(info.status_code))
+        if info.status_code == 200:
+            listjs = info.json()
+            tstate = listjs[0]['state']
+            self.logger.debug('torrent state:' + tstate)
+            # To be determined: stalledUP
+            if tstate in ['downloading', 'pausedDL', 'queuedDL', 'uploading', 'pausedUP', 'queuedUP', 'stalledUP',
+                          'forcedUP', 'stalledDL', 'forceDL']:
+                return True
+            else:
+                # error missingFiles checkingUP allocating metaDL checkingDL checkingResumeData moving unknown
+                return False
+        elif info.status_code == 404:
+            self.logger.error('Torrent hash was not found')
+
+        return False
+
+    def gettorrentname(self, thash):
+        info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
+        self.logger.debug('status code = ' + str(info.status_code))
+        if info.status_code == 200:
+            listjs = info.json()
+            tname = listjs[0]['name']
+            self.logger.debug('torrent name:' + tname)
+            return  tname
+        elif info.status_code == 404:
+            self.logger.error('Torrent hash was not found')
+        return ''
 
     def gettorrenttracker(self, thash):
         info = self.get_url('/api/v2/torrents/trackers?hash=' + thash)
@@ -267,12 +306,16 @@ class QBAPI(object):
 
             if info.status_code == 200:
                 self.logger.info('addtorrent  successfully info hash = ' + thash)
-                time.sleep(5)
+
                 # info = self.get_url('/api/v2/torrents/info?sort=added_on&reverse=true')
                 #
                 # if info.status_code == 200:
                 #     hash = info.json()[0]['hash']
                 self.settorrentcategory(thash)
+
+                # 防止磁盘卡死,当磁盘碎片太多时此处会卡几到几十分钟
+                while not self.gettorrentdlstatus(thash):
+                    time.sleep(5)
                 if self.checktrackerhttps:
                     self.checktorrenttracker(thash)
                 # else:
@@ -290,10 +333,34 @@ class QBAPI(object):
             else:
                 self.logger.error('set category ERROR')
 
-    def getdisksize(self, diskletter):
+    # 返回单位大小为Byte
+    def getdirsize(self, tdir):
+        size = 0
+        if os.path.isdir(tdir):
+            for root, dirs, files in os.walk(tdir):
+                size += sum([getsize(join(root, name)) for name in files])
+        elif os.path.isfile(tdir):
+            size += getsize(tdir)
+        elif os.path.isfile(tdir + '.!qB'):
+            size += getsize(tdir + '.!qB')
+        return size
+
+    def getdiskleftsize(self, diskletter):
         p = psutil.disk_usage(diskletter + ':\\')[2] / 1024 / 1024 / 1024
         # self.logger.info(self.diskletter + '盘剩余空间' + str(p) + 'GB')
         return p
+
+    def getqbtpreferences(self):
+        info = self.get_url('/api/v2/app/preferences')
+        if info.status_code == 200:
+            self.logger.info('get preferences successfully')
+            listjs = info.json()
+            return listjs
+        #qbt web访问失败
+        exit(3)
+
+    def getincomplete_files_ext(self):
+        return self.getqbtpreferences()['incomplete_files_ext']
 
 
 if __name__ == '__main__':
@@ -301,4 +368,6 @@ if __name__ == '__main__':
     gl.set_value('config', Myconfig.Config())
     gl.set_value('logger', Mylogger.Mylogger())
     api = QBAPI()
-    api.gettorrentcontent('518c06ad1a248bf5d042c226cd70a1707b187b79')
+    #api.gettorrentcontent('518c06ad1a248bf5d042c226cd70a1707b187b79')
+    # print('getdirsize' + str(api.getdirsize('E:\PT Downloads\Seven Seconds S01 2160p NF WEB-DL HEVC 10bit HDR DDP5.1-TrollUHD')))
+    api.checksize(123)
