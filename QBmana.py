@@ -63,7 +63,8 @@ class QBAPI(object):
 
             diskremainsize = 1048576  # 设置无穷大的磁盘大小为1PB=1024*1024GB
             if self.diskletter != '':
-                diskremainsize = self.getdisksize(self.diskletter)
+                # 留出3G容量防止空间分配失败
+                diskremainsize = self.getdisksize(self.diskletter) - 3
                 self.logger.info('diskremainsize =' + str(diskremainsize) + 'GB')
             self.dynamiccapacity = gl.get_value('config').capacity \
                 if totalsize + diskremainsize > gl.get_value('config').capacity else totalsize + diskremainsize
