@@ -158,6 +158,7 @@ class QBAPI(object):
                     break
             self.logger.info('torrent select part 2 , list len = ' + str(len(d_list)))
         if deletesize > 0:
+            self.logger.info('deletesize > 0, 不满足条件, 不删除')
             d_list = []
             return d_list, False
         else:
