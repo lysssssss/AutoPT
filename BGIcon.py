@@ -70,11 +70,19 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
 
 
 class MyFrame(wx.Frame):
+    ICON = "logo.ico"  # 图标地址
     def __init__(self):
         wx.Frame.__init__(self, parent=None, id=1, title='AutoPT', pos=wx.DefaultPosition,
-                          size=(800, 600), style=wx.CAPTION | wx.CLOSE_BOX, name='frame')
+                          size=(1000, 700), style=wx.CAPTION | wx.CLOSE_BOX, name='frame')
 
-        self.textctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.SetIcon(wx.Icon(self.ICON))  # 设置图标和标题
+
+        self.SetForegroundColour(wx.WHITE)
+        self.SetBackgroundColour(wx.WHITE)
+
+        self.textctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.textctrl.SetForegroundColour(wx.BLACK)
+        self.textctrl.SetBackgroundColour(wx.WHITE)
 
         self.Bind(wx.EVT_CLOSE, self.onExit)  # 绑定“退出”选项的点击事件
 
