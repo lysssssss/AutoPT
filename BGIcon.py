@@ -15,11 +15,12 @@ class ClockWindow(wx.Window):
         self.timer.Start(1000)
 
     def OnTimer(self, event):
-        if gl.get_value('thread').is_alive():
-            pass
-        else:
-            self.logger.info('检测到线程关闭，异常退出')
-            wx.Exit()
+        pass
+        # if gl.get_value('thread').is_alive():
+        #     pass
+        # else:
+        #     self.logger.info('检测到线程关闭，异常退出')
+        #     wx.Exit()
 
 
 class MyTaskBarIcon(wx.adv.TaskBarIcon):
@@ -69,8 +70,71 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
                 ('退出', self.ID_EXIT)]
 
 
+class LoginFrame(wx.Frame):
+    def __init__(self, station, image):
+        wx.Frame.__init__(self, parent=None, id=2, title='登录' + station, pos=wx.DefaultPosition,
+                          size=(320, 220), style=wx.CAPTION | wx.CLOSE_BOX, name='login')
+        self.loginflag = False
+        self.username = ''
+        self.password = ''
+        self.imagecode = ''
+
+        # 利用wxpython的GridBagSizer()进行页面布局
+        panel = wx.Panel(self)
+        sizer = wx.GridBagSizer(10, 20)  # 列间隔为10，行间隔为20
+
+        # 添加账号字段，并加入页面布局，为第一行，第一列
+        text = wx.StaticText(panel, label="用户名")
+        sizer.Add(text, pos=(0, 0), flag=wx.ALL, border=5)
+
+        # 添加文本框字段，并加入页面布局，为第一行，第2,3列
+        self.tc = wx.TextCtrl(panel)
+        sizer.Add(self.tc, pos=(0, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
+
+        # 添加密码字段，并加入页面布局，为第二行，第一列
+        text1 = wx.StaticText(panel, label="密码")
+        sizer.Add(text1, pos=(1, 0), flag=wx.ALL, border=5)
+
+        # 添加文本框字段，以星号掩盖,并加入页面布局，为第二行，第2,3列
+        self.tc1 = wx.TextCtrl(panel, style=wx.TE_PASSWORD)
+        sizer.Add(self.tc1, pos=(1, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
+
+        # 添加验证码字段，并加入页面布局，为第三行，第一列
+        text2 = wx.StaticText(panel, label="验证码")
+        sizer.Add(text2, pos=(2, 0), flag=wx.ALL, border=5)
+
+        # 添加文本框字段，并加入页面布局，为第三行，第2列
+        self.tc2 = wx.TextCtrl(panel)
+        sizer.Add(self.tc2, pos=(2, 1), flag=wx.ALL, border=5)
+
+        # 添加验证码图片，并加入页面布局，为第三行，第3列
+        image = wx.Image('D:\PycharmProjects\AutoPT\dist\\111.png', wx.BITMAP_TYPE_PNG).Rescale(80, 25).ConvertToBitmap()  # 获取图片，转化为Bitmap形式
+        self.bmp = wx.StaticBitmap(panel, -1, image)  # 转化为wx.StaticBitmap()形式
+        sizer.Add(self.bmp, pos=(2, 2), flag=wx.ALL, border=5)
+
+        # 添加登录按钮，并加入页面布局，为第四行，第2列
+        btn = wx.Button(panel, -1, "登录")
+        sizer.Add(btn, pos=(3, 1), flag=wx.ALL, border=5)
+
+        # 为登录按钮绑定login_process事件
+        self.Bind(wx.EVT_BUTTON, self.getlogindata, btn)
+        # 将Panmel适应GridBagSizer()放置
+        panel.SetSizerAndFit(sizer)
+
+        #self.Bind(wx.EVT_CLOSE, self.onExit)  # 绑定“退出”选项的点击事件
+
+    def getlogindata(self, event):
+        if self.tc1.GetValue() == '' or self.tc2.GetValue() == '' or self.tc.GetValue() == '':
+            wx.MessageBox('用户名密码验证码不能为空', "Error")
+            return
+        gl.set_value('logindata', [self.username, self.password, self.imagecode])
+        self.loginflag = True
+        self.Close()
+
+
 class MyFrame(wx.Frame):
     ICON = "logo.ico"  # 图标地址
+
     def __init__(self):
         wx.Frame.__init__(self, parent=None, id=1, title='AutoPT', pos=wx.DefaultPosition,
                           size=(1000, 700), style=wx.CAPTION | wx.CLOSE_BOX, name='frame')
@@ -80,7 +144,8 @@ class MyFrame(wx.Frame):
         self.SetForegroundColour(wx.WHITE)
         self.SetBackgroundColour(wx.WHITE)
 
-        self.textctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.textctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER | wx.TE_READONLY)
+
         self.textctrl.SetForegroundColour(wx.BLACK)
         self.textctrl.SetBackgroundColour(wx.WHITE)
 
@@ -105,9 +170,14 @@ class MyApp(wx.App):
         self.TaskBar = MyTaskBarIcon(self.frame)  # 显示系统托盘图标
         self.timer = ClockWindow()
         gl.set_value('logwindow', self.frame)
-        # self.SetTopWindow(self.frame)
+        self.SetTopWindow(self.frame)
         self.frame.Show()
+
         return True
+
+    def getlogindata(self, title='', image=None):
+        frame = LoginFrame(title, image)
+        frame.Show()
 
 
 if __name__ == "__main__":
