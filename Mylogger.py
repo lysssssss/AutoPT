@@ -1,25 +1,32 @@
 import logging
+import sys
 from logging import handlers
 
 import globalvar as gl
 
 
+class LogginRedirectHandler(logging.Handler):
+    def __init__(self, ):
+        # run the regular Handler __init__
+        logging.Handler.__init__(self)
+
+    def emit(self, record):
+        msg = self.format(record)
+        gl.get_value('logwindow').textctrl.AppendText(msg + '\n')
+
+
+
 class Mylogger(object):
 
     def __init__(self):
-        console = logging.StreamHandler()
-        console.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
-            '%(asctime)10s [%(filename)s %(levelname)6s:%(lineno)4s - %(funcName)10s ] %(message)s'
-        )
-        console.setFormatter(formatter)
+            '%(asctime)10s [%(filename)s %(levelname)s:%(lineno)s-%(funcName)s]%(message)s')
 
-        self._logger = logging.getLogger("byr")
-        self._logger.addHandler(console)
-        if gl.get_value('config').loglevel == 'info':
-            self._logger.setLevel(logging.INFO)
-        else:
-            self._logger.setLevel(logging.DEBUG)
+        self._logger = logging.getLogger("AutoPT")
+
+        console = logging.StreamHandler()
+        # console.setLevel(logging.DEBUG)
+        console.setFormatter(formatter)
 
         th = handlers.TimedRotatingFileHandler(filename='Run.log', when='midnight',
                                                backupCount=gl.get_value('config').logsavetime,
@@ -33,7 +40,19 @@ class Mylogger(object):
         # W 每星期（interval==0时代表星期一）
         # midnight 每天凌晨
         th.setFormatter(formatter)  # 设置文件里写入的格式
+
+        loggingRedirectHandler = LogginRedirectHandler()
+        loggingRedirectHandler.setFormatter(formatter)
+
+
         self._logger.addHandler(th)
+        self._logger.addHandler(console)
+        self._logger.addHandler(loggingRedirectHandler)
+
+        if gl.get_value('config').loglevel == 'info':
+            self._logger.setLevel(logging.INFO)
+        else:
+            self._logger.setLevel(logging.DEBUG)
 
     @property
     def logger(self):

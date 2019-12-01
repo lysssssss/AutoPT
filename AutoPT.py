@@ -26,10 +26,10 @@ if __name__ == '__main__':
     gl.set_value('config', Myconfig.Config())
     gl.set_value('logger', Mylogger.Mylogger())
 
+    app = BGIcon.MyApp()
     gl.get_value('logger').logger.info('程序启动')
     gl.get_value('thread').start()
 
-    app = BGIcon.MyApp()
     app.MainLoop()
 
     thread_flag = False
