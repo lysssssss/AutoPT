@@ -194,6 +194,7 @@ class MyApp(wx.App):
             wx.FutureCall(1000, self.checkptthread)
         else:
             self.logger.info('检测到线程关闭，异常退出')
+            self.frame.Show()
             wx.MessageBox('检测到异常线程关闭', "AutoPT")
             wx.Exit()
 
