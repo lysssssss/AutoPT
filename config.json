@@ -5,12 +5,12 @@
     "LogSaveTime": 5
     //日志最长保存时间,单位：天 默认7天
   },
-  
+
   "BYR":{
     "switch": true,
     "torrent_download_root": "D:/tmp",
     //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
-    "IntervalTime": 60,
+    "IntervalTime": 1,
     //检查PT站的时间间隔,单位：秒 默认60秒
 
     "CheckPTMode": 1,
@@ -28,7 +28,7 @@
     //自动下载的种子会自动归类到第一个分类下,如需要接管其他分类,在数组里追加即可 默认未分类
     //接管的分类必须与第一个分类处于同一个分区下,否则不接管
     "MainCategory": [
-      "BYR"
+      "BYR", "TJU"
     ],
     "KeepTorrentTime": 24,
     //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
@@ -38,7 +38,7 @@
   },
 
   "TJU": {
-    "switch": true,
+    "switch": false,
     "torrent_download_root": "D:/tmp",
     //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
     "IntervalTime": 60,
@@ -59,7 +59,7 @@
     //自动下载的种子会自动归类到第一个分类下,如需要接管其他分类,在数组里追加即可 默认未分类
     //接管的分类必须与第一个分类处于同一个分区下,否则不接管
     "MainCategory": [
-      "TJU"
+      "TJU", "BYR"
     ],
     "KeepTorrentTime": 24,
     //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
