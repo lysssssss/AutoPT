@@ -1,4 +1,5 @@
 import time
+from threading import Thread
 
 import AutoPT_BYR
 import BGIcon

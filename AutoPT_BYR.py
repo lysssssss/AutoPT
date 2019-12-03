@@ -9,12 +9,14 @@ import pickle
 import random
 import time
 from io import BytesIO
+from threading import Thread
 from urllib.parse import unquote
 from urllib.parse import urlparse, parse_qs
 
 import requests
 from PIL import Image
 from bs4 import BeautifulSoup
+
 
 import QBmana
 import TorrentHash
@@ -32,7 +34,8 @@ class Byr(object):
 
         self._session = requests.session()
         self._session.headers = {
-            'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 Chrome/79.0.3945.16 Safari/537.36 Edg/79.0.309.11'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/80.0.3965.0 Safari/537.36 Edg/80.0.334.4'
         }
 
         self._root = 'https://bt.byr.cn/'
@@ -58,7 +61,8 @@ class Byr(object):
             "Chrome/45.0.2454.101 Safari/537.36",
             "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
             "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
-            "Mozilla/5.0 AppleWebKit/537.36 Chrome/79.0.3945.16 Safari/537.36 Edg/79.0.309.11"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3965.0 "
+            "Safari/537.36 Edg/80.0.334.4 "
         ]
         str = random.choice(user_agent_list)
         self.logger.debug(str)
@@ -68,37 +72,43 @@ class Byr(object):
 
     def login(self):
         """Login to bt.byr.cn"""
-        login_page = self.get_url('login.php')
-        image_url = login_page.find('img', alt='CAPTCHA')['src']
-        image_hash = login_page.find(
-            'input', attrs={'name': 'imagehash'})['value']
-        self.logger.info('Image url: ' + image_url)
-        self.logger.info('Image hash: ' + image_hash)
-        req = self._session.get(self._root + image_url)
-        image_file = Image.open(BytesIO(req.content))
-        # image_file.show()
-        # captcha_text = input('If image can not open in your system, then open the url below in browser\n'
-        #                      + self._root + image_url + '\n' + 'Input Code:')
-        self.app.getlogindata('BYR', image_file)
+        try:
+            login_page = self.get_url('login.php')
+            image_url = login_page.find('img', alt='CAPTCHA')['src']
+            image_hash = login_page.find(
+                'input', attrs={'name': 'imagehash'})['value']
+            self.logger.info('Image url: ' + image_url)
+            self.logger.info('Image hash: ' + image_hash)
+            req = self._session.get(self._root + image_url)
+            image_file = Image.open(BytesIO(req.content))
+            #image_file.show()
+            # captcha_text = input('If image can not open in your system, then open the url below in browser\n'
+            #                     + self._root + image_url + '\n' + 'Input Code:')
+            self.app.getlogindata('BYR', image_file)
 
-        # 取消登录，强制退出
-        if not gl.get_value('logindata')[3]:
+            # 取消登录，强制退出
+            if not gl.get_value('logindata')[0]:
+                exit('取消登录')
+
+            self.logger.debug('Captcha text: ' + gl.get_value('logindata')[1]['captcha'])
+
+            login_data = {
+                'username': gl.get_value('logindata')[1]['username'],
+                'password': gl.get_value('logindata')[1]['password'],
+                'imagestring': gl.get_value('logindata')[1]['captcha'],
+                'imagehash': image_hash
+            }
+            main_page = self._session.post(
+                self._root + 'takelogin.php', login_data)
+            if main_page.url != self._root + 'index.php':
+                self.logger.error('Login error')
+                return False
+            self._save()
+        except BaseException as e:
+            self.logger.error(e)
             exit(4)
-
-        self.logger.debug('Captcha text: ' + gl.get_value('logindata')[2])
-
-        login_data = {
-            'username': gl.get_value('logindata')[0],
-            'password': gl.get_value('logindata')[1],
-            'imagestring': gl.get_value('logindata')[2],
-            'imagehash': image_hash
-        }
-        main_page = self._session.post(
-            self._root + 'takelogin.php', login_data)
-        if main_page.url != self._root + 'index.php':
-            self.logger.error('Login error')
-            return
-        self._save()
+            return False
+        return True
 
     def _save(self):
         """Save cookies to file"""
@@ -114,8 +124,9 @@ class Byr(object):
                 self._session.cookies = pickle.load(f)
         else:
             self.logger.debug('Load cookies by login')
-            self.login()
+            return self.login()
             # self._save()
+        return True
 
     @property
     def pages(self):
@@ -126,10 +137,10 @@ class Byr(object):
         self.logger.debug('Get pages')
         filterclass = ''
         filterurl = ''
-        if self.config.checkptmode == 1:
+        if self.config['checkptmode'] == 1:
             filterurl = 'torrents.php?'
             filterclass = 'free_bg'
-        elif self.config.checkptmode == 2:
+        elif self.config['checkptmode'] == 2:
             filterurl = 'torrents.php?spstate=2'
             filterclass = 'free_bg'
         page = self.get_url(filterurl)
@@ -176,7 +187,7 @@ class Byr(object):
                         req_dl = self.getdownload(page.id)
                         thash = TorrentHash.get_torrent_hahs40(req_dl.content) if req_dl.status_code == 200 else ''
 
-                        if self.config.autoflag:
+                        if self.config['auto_flag']:
                             # check disk capaciry
                             if req_dl.status_code == 200:
                                 self.qbapi.addtorrent(req_dl.content, thash, page.size)
@@ -195,7 +206,7 @@ class Byr(object):
                             if req_dl.status_code == 200:
                                 filename = req_dl.headers['content-disposition']
                                 filename = unquote(filename[filename.find('name') + 5:])
-                                with open(self.config.dlroot + filename, 'wb') as fp:
+                                with open(self.config['dlroot'] + filename, 'wb') as fp:
                                     fp.write(req_dl.content)
                                 self.list.append(page.id)
                                 f.write(
@@ -223,7 +234,7 @@ class Byr(object):
             if req.status_code == 200:
                 filename = req.headers['content-disposition']
                 filename = unquote(filename[filename.find('name') + 5:])
-                # with open(self.config.dlroot + filename, 'wb') as f:
+                # with open(self.config['dlroot'] + filename, 'wb') as f:
                 # f.write(req.content)
                 break
             else:

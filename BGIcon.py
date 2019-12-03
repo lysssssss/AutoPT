@@ -75,7 +75,7 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
 class LoginFrame(wx.Dialog):
     def __init__(self, station, image, loginflag, windowhandler):
         wx.Dialog.__init__(self, parent=None, id=2, title='登录' + station, pos=wx.DefaultPosition,
-                           size=(370, 230), style=wx.CAPTION | wx.CLOSE_BOX, name='login')
+                           size=(380, 230), style=wx.CAPTION | wx.CLOSE_BOX, name='login')
         self.loginflag = loginflag
 
         # 拉起日志窗口
@@ -83,35 +83,38 @@ class LoginFrame(wx.Dialog):
 
         # 利用wxpython的GridBagSizer()进行页面布局
         panel = wx.Panel(self)
-        sizer = wx.GridBagSizer(10, 20)  # 列间隔为10，行间隔为20
+        sizer = wx.GridBagSizer(5, 10)  # 列间隔为10，行间隔为20
 
         # 添加账号字段，并加入页面布局，为第一行，第一列
         text = wx.StaticText(panel, label="用户名")
         sizer.Add(text, pos=(0, 0), flag=wx.ALL, border=5)
 
         # 添加文本框字段，并加入页面布局，为第一行，第2,3列
-        self.tc = wx.TextCtrl(panel)
-        sizer.Add(self.tc, pos=(0, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
+        self.textinput_user = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
+        sizer.Add(self.textinput_user, pos=(0, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
+        self.Bind(wx.EVT_TEXT_ENTER, self.getlogindata, self.textinput_user)
 
         # 添加密码字段，并加入页面布局，为第二行，第一列
         text1 = wx.StaticText(panel, label="密码")
         sizer.Add(text1, pos=(1, 0), flag=wx.ALL, border=5)
 
         # 添加文本框字段，以星号掩盖,并加入页面布局，为第二行，第2,3列
-        self.tc1 = wx.TextCtrl(panel, style=wx.TE_PASSWORD)
-        sizer.Add(self.tc1, pos=(1, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
+        self.textinput_pwd = wx.TextCtrl(panel, style=wx.TE_PASSWORD|wx.TE_PROCESS_ENTER)
+        sizer.Add(self.textinput_pwd, pos=(1, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
+        self.Bind(wx.EVT_TEXT_ENTER, self.getlogindata, self.textinput_pwd)
 
         # 添加验证码字段，并加入页面布局，为第三行，第一列
         text2 = wx.StaticText(panel, label="验证码")
         sizer.Add(text2, pos=(2, 0), flag=wx.ALL, border=5)
 
         # 添加文本框字段，并加入页面布局，为第三行，第2列
-        self.tc2 = wx.TextCtrl(panel)
-        sizer.Add(self.tc2, pos=(2, 1), flag=wx.ALL, border=5)
+        self.textinput_captcha = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
+        sizer.Add(self.textinput_captcha, pos=(2, 1), flag=wx.ALL, border=5)
+        self.Bind(wx.EVT_TEXT_ENTER, self.getlogindata, self.textinput_captcha)
 
         # 添加验证码图片，并加入页面布局，为第三行，第3列
         # image = wx.Image(image, wx.BITMAP_TYPE_ANY).Rescale(80, 25).ConvertToBitmap()  # 获取图片，转化为Bitmap形式
-        image = image.resize((int(80*1.7), int(25*1.7)))
+        # image = image.resize((int(image.size[0]/2), int(image.size[1]/2)))
         image = wx.Bitmap.FromBuffer(image.size[0], image.size[1], image.tobytes())
         self.bmp = wx.StaticBitmap(panel, -1, image)  # 转化为wx.StaticBitmap()形式
         sizer.Add(self.bmp, pos=(2, 2), flag=wx.ALL, border=5)
@@ -128,16 +131,22 @@ class LoginFrame(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.onExit)  # 绑定“退出”选项的点击事件
 
     def getlogindata(self, event):
-        if self.tc1.GetValue() == '' or self.tc2.GetValue() == '' or self.tc.GetValue() == '':
+        if self.textinput_pwd.GetValue() == '' or self.textinput_captcha.GetValue() == '' or self.textinput_user.GetValue() == '':
             wx.MessageBox('用户名密码验证码不能为空', "Error")
             return
-        gl.set_value('logindata', [self.tc1.GetValue(), self.tc2.GetValue(), self.tc.GetValue(), True])
+        gl.set_value('logindata', [True,
+                                   {'username': self.textinput_user.GetValue(),
+                                    'password': self.textinput_pwd.GetValue(),
+                                    'captcha': self.textinput_captcha.GetValue()}])
         self.loginflag[0] = True
         self.Close()
 
     def onExit(self, event):
         if not self.loginflag[0]:
-            gl.set_value('logindata', ['', '', '', False])
+            gl.set_value('logindata', [False,
+                                       {'username': '',
+                                        'password': '',
+                                        'captcha': ''}])
             self.loginflag[0] = True
         self.Destroy()
 
