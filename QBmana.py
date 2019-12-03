@@ -302,9 +302,13 @@ class QBAPI(object):
                 trytime -= 1
                 time.sleep(20)
 
-    def addtorrent(self, content, thash):
+    def addtorrent(self, content, thash, tsize):
         data = {'torrents': content}
+        # 判断种子是否存在
         if not self.istorrentexist(thash):
+            # 分配空间失败
+            if not self.checksize(tsize):
+                return
             info = self.post_url('/api/v2/torrents/add', data)
             self.logger.debug('addtorrent status code = ' + str(info.status_code))
 

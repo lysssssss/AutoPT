@@ -172,13 +172,7 @@ class Byr(object):
                         if self.config.autoflag:
                             # check disk capaciry
                             if req_dl.status_code == 200:
-                                if self.qbapi.checksize(page.size):
-                                    self.qbapi.addtorrent(req_dl.content, thash)
-                                else:
-                                    self.logger.warning('Check size fail:' + page.id + ',' + page.name + ','
-                                                        + page.type + ',' + str(page.size) + 'GB,'
-                                                        + str(page.seeders) + ',' + str(page.snatched))
-
+                                self.qbapi.addtorrent(req_dl.content, thash, page.size)
                                 f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,'
                                         + str(page.seeders) + ','
                                         + str(thash) + '\n')
