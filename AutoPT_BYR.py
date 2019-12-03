@@ -129,7 +129,7 @@ class Byr(object):
         n = 0
         try:
             # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_=filterclass):
+            for line in page.find_all('tr', class_=filterclass) or page.find_all('tr', class_='twoupfree_bg'):
                 if n == 0:
                     yield (ByrPage(line))
                     n = 1
