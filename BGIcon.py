@@ -75,7 +75,7 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
 class LoginFrame(wx.Dialog):
     def __init__(self, station, image, loginflag, windowhandler):
         wx.Dialog.__init__(self, parent=None, id=2, title='登录' + station, pos=wx.DefaultPosition,
-                           size=(320, 220), style=wx.CAPTION | wx.CLOSE_BOX, name='login')
+                           size=(370, 230), style=wx.CAPTION | wx.CLOSE_BOX, name='login')
         self.loginflag = loginflag
 
         # 拉起日志窗口
@@ -111,7 +111,8 @@ class LoginFrame(wx.Dialog):
 
         # 添加验证码图片，并加入页面布局，为第三行，第3列
         # image = wx.Image(image, wx.BITMAP_TYPE_ANY).Rescale(80, 25).ConvertToBitmap()  # 获取图片，转化为Bitmap形式
-        image = wx.Bitmap.FromBuffer(80, 25, image.tobytes())
+        image = image.resize((int(80*1.7), int(25*1.7)))
+        image = wx.Bitmap.FromBuffer(image.size[0], image.size[1], image.tobytes())
         self.bmp = wx.StaticBitmap(panel, -1, image)  # 转化为wx.StaticBitmap()形式
         sizer.Add(self.bmp, pos=(2, 2), flag=wx.ALL, border=5)
 
