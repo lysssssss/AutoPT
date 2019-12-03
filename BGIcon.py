@@ -144,7 +144,7 @@ class MyFrame(wx.Frame):
         self.SetForegroundColour(wx.WHITE)
         self.SetBackgroundColour(wx.WHITE)
 
-        self.textctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER | wx.TE_READONLY)
+        self.textctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_READONLY)
 
         self.textctrl.SetForegroundColour(wx.BLACK)
         self.textctrl.SetBackgroundColour(wx.WHITE)
