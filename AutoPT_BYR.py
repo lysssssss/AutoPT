@@ -26,8 +26,9 @@ class Byr(object):
 
     def __init__(self):
         """Byr Init """
-        self.config = gl.get_value('config')
+        self.config = gl.get_value('config')['BYR']
         self.logger = gl.get_value('logger').logger
+        self.app = gl.get_value('wxpython')
 
         self._session = requests.session()
         self._session.headers = {
@@ -36,7 +37,7 @@ class Byr(object):
 
         self._root = 'https://bt.byr.cn/'
         self.list = []
-        self.qbapi = QBmana.QBAPI()
+        self.qbapi = QBmana.QBAPI(self.config)
         if os.path.exists('list.csv'):
             self.logger.debug('Read list.csv')
             with open('list.csv', 'r', encoding='UTF-8') as f:
@@ -75,15 +76,21 @@ class Byr(object):
         self.logger.info('Image hash: ' + image_hash)
         req = self._session.get(self._root + image_url)
         image_file = Image.open(BytesIO(req.content))
-        image_file.show()
-        captcha_text = input('If image can not open in your system, then open the url below in browser\n' + self._root +
-                             image_url + '\n' + 'Input Code:')
-        self.logger.debug('Captcha text: ' + captcha_text)
+        # image_file.show()
+        # captcha_text = input('If image can not open in your system, then open the url below in browser\n'
+        #                      + self._root + image_url + '\n' + 'Input Code:')
+        self.app.getlogindata('BYR', image_file)
+
+        # 取消登录，强制退出
+        if not gl.get_value('logindata')[3]:
+            exit(4)
+
+        self.logger.debug('Captcha text: ' + gl.get_value('logindata')[2])
 
         login_data = {
-            'username': self.config.username,
-            'password': self.config.password,
-            'imagestring': captcha_text,
+            'username': gl.get_value('logindata')[0],
+            'password': gl.get_value('logindata')[1],
+            'imagestring': gl.get_value('logindata')[2],
             'imagehash': image_hash
         }
         main_page = self._session.post(
@@ -108,7 +115,7 @@ class Byr(object):
         else:
             self.logger.debug('Load cookies by login')
             self.login()
-            self._save()
+            #self._save()
 
     @property
     def pages(self):

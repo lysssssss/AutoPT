@@ -12,10 +12,11 @@ import globalvar as gl
 
 class QBAPI(object):
 
-    def __init__(self):
+    def __init__(self, config):
         self.logger = gl.get_value('logger').logger
+        self.config = config
 
-        self._root = 'http://' + gl.get_value('config').qbaddr
+        self._root = 'http://' + self.config['qbaddr']
         self.logger.info('QBAPI Init =' + self._root)
 
         self._session = requests.session()
@@ -23,14 +24,13 @@ class QBAPI(object):
             'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 Chrome/79.0.3945.16 Safari/537.36 Edg/79.0.309.11'
         }
 
-        self.dynamiccapacity = gl.get_value('config').capacity
+        self.dynamiccapacity = self.config['capacity']
 
-        self.maincategory = gl.get_value('config').maincategory
-        self.subcategory = gl.get_value('config').subcategory
-        self.checktrackerhttps = gl.get_value('config').checktrackerhttps
+        self.maincategory = self.config['maincategory']
+        self.subcategory = self.config['subcategory']
+        self.checktrackerhttps = self.config['checktrackerhttps']
         self.diskletter = ''
         self.checkcategory()
-        self.incomplete_files_ext = self.getincomplete_files_ext()
 
     def checkcategory(self):
         if self.maincategory == '':
@@ -60,7 +60,7 @@ class QBAPI(object):
 
     def checksize(self, filesize):
         res = True
-        if gl.get_value('config').autoflag and gl.get_value('config').capacity != 0:
+        if self.config['autoflag'] and self.config['capacity'] != 0:
             self.logger.info('QBAPI check filesize =' + str(filesize) + 'GB')
 
             gtl = self.gettorrentlist()
@@ -73,8 +73,8 @@ class QBAPI(object):
                 # 留出1G容量防止空间分配失败
                 diskremainsize = self.getdiskleftsize(self.diskletter) - 1 - (pretotalsize - nowtotalsize)
                 self.logger.info('diskremainsize =' + str(diskremainsize) + 'GB')
-            self.dynamiccapacity = gl.get_value('config').capacity \
-                if pretotalsize + diskremainsize > gl.get_value('config').capacity else pretotalsize + diskremainsize
+            self.dynamiccapacity = self.config['capacity'] \
+                if pretotalsize + diskremainsize > self.config['capacity'] else pretotalsize + diskremainsize
             self.logger.info('dynamiccapacity =' + str(self.dynamiccapacity) + 'GB')
 
             if filesize > self.dynamiccapacity:
@@ -132,7 +132,7 @@ class QBAPI(object):
             # 不删除 keeptorrenttime 小时内下载的种子
             infinte_lastactivity = [val for val in gtl
                                     if val['last_activity'] > now and
-                                    now - val['added_on'] > gl.get_value('config').keeptorrenttime * 60 * 60]
+                                    now - val['added_on'] > self.config['keeptorrenttime'] * 60 * 60]
             infinte_lastactivity.sort(key=lambda x: x['added_on'])
             # print (infinte_lastactivity)
             for val in infinte_lastactivity:
@@ -147,7 +147,7 @@ class QBAPI(object):
             # 不删除 keeptorrenttime 小时内下载的种子
             other_lastactivity = [val for val in gtl
                                   if val['last_activity'] <= now and
-                                  now - val['added_on'] > gl.get_value('config').keeptorrenttime * 60 * 60]
+                                  now - val['added_on'] > self.config['keeptorrenttime'] * 60 * 60]
             other_lastactivity.sort(key=lambda x: x['last_activity'])
             for val in other_lastactivity:
                 d_list.append([val['hash'], val['size'] / 1024 / 1024 / 1024])
@@ -367,9 +367,6 @@ class QBAPI(object):
         # qbt web访问失败
         exit(3)
 
-    def getincomplete_files_ext(self):
-        return self.getqbtpreferences()['incomplete_files_ext']
-
 
 if __name__ == '__main__':
     gl._init()
@@ -377,5 +374,4 @@ if __name__ == '__main__':
     gl.set_value('logger', Mylogger.Mylogger())
     api = QBAPI()
     # api.gettorrentcontent('518c06ad1a248bf5d042c226cd70a1707b187b79')
-    # print('getdirsize' + str(api.getdirsize('E:\PT Downloads\Seven Seconds S01 2160p NF WEB-DL HEVC 10bit HDR DDP5.1-TrollUHD')))
     api.checksize(123)

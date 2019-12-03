@@ -9,13 +9,30 @@ import globalvar as gl
 
 
 def run():
-    auto_byr = AutoPT_BYR.Byr()
+    maxtime = 1
+    auto_byr = None
+    auto_tju = None
+
+    if gl.get_value('config').switch('byr'):
+        auto_byr = AutoPT_BYR.Byr()
+        maxtime *=gl.get_value('config').intervaltime('byr')
+
+    if gl.get_value('config').switch('tju'):
+        #auto_tju = AutoPT_TJU.Tju()
+        maxtime *= gl.get_value('config').intervaltime('tju')
+        pass
+
+    counttime = 0
+
     while thread_flag:
-        auto_byr.start()
-        waittime = gl.get_value('config').intervaltime
-        while thread_flag and waittime > 0:
-            time.sleep(1)
-            waittime -= 1
+        if auto_byr is not None and counttime % gl.get_value('config').intervaltime('byr') == 0:
+            auto_byr.start()
+        if auto_tju is not None and counttime % gl.get_value('config').intervaltime('tju') == 0:
+            auto_tju.start()
+        counttime += 1
+        if counttime >= maxtime:
+            counttime = 0
+        time.sleep(1)
 
 
 if __name__ == '__main__':
@@ -27,6 +44,8 @@ if __name__ == '__main__':
     gl.set_value('logger', Mylogger.Mylogger())
 
     app = BGIcon.MyApp()
+    gl.set_value('wxpython', app)
+
     gl.get_value('logger').logger.info('程序启动')
     gl.get_value('thread').start()
 
