@@ -6,17 +6,15 @@ Create: 2019年11月13日
 """
 import os
 import pickle
-import random
 import time
 from io import BytesIO
-from threading import Thread
 from urllib.parse import unquote
 from urllib.parse import urlparse, parse_qs
 
 import requests
 from PIL import Image
 from bs4 import BeautifulSoup
-
+from fake_useragent import UserAgent
 
 import QBmana
 import TorrentHash
@@ -34,8 +32,7 @@ class Byr(object):
 
         self._session = requests.session()
         self._session.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                          'Chrome/80.0.3965.0 Safari/537.36 Edg/80.0.334.4'
+            'User-Agent': UserAgent().random
         }
 
         self._root = 'https://bt.byr.cn/'
@@ -49,25 +46,8 @@ class Byr(object):
         self.logger.info('初始化成功，开始监听')
 
     def random_agent(self):
-        user_agent_list = [
-            "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/68.0.3440.106 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/67.0.3396.99 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/64.0.3282.186 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/45.0.2454.101 Safari/537.36",
-            "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
-            "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3965.0 "
-            "Safari/537.36 Edg/80.0.334.4 "
-        ]
-        str = random.choice(user_agent_list)
-        self.logger.debug(str)
         self._session.headers = {
-            'User-Agent': str
+            'User-Agent': UserAgent().random
         }
 
     def login(self):
@@ -81,7 +61,7 @@ class Byr(object):
             self.logger.info('Image hash: ' + image_hash)
             req = self._session.get(self._root + image_url)
             image_file = Image.open(BytesIO(req.content))
-            #image_file.show()
+            # image_file.show()
             # captcha_text = input('If image can not open in your system, then open the url below in browser\n'
             #                     + self._root + image_url + '\n' + 'Input Code:')
             self.app.getlogindata('BYR', image_file)
