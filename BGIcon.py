@@ -1,6 +1,6 @@
 import wx
 import wx.adv
-from wx.lib.pubsub import pub
+from pubsub import pub
 
 import Myconfig
 import Mylogger
@@ -99,7 +99,7 @@ class LoginFrame(wx.Dialog):
         sizer.Add(text1, pos=(1, 0), flag=wx.ALL, border=5)
 
         # 添加文本框字段，以星号掩盖,并加入页面布局，为第二行，第2,3列
-        self.textinput_pwd = wx.TextCtrl(panel, style=wx.TE_PASSWORD|wx.TE_PROCESS_ENTER)
+        self.textinput_pwd = wx.TextCtrl(panel, style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
         sizer.Add(self.textinput_pwd, pos=(1, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
         self.Bind(wx.EVT_TEXT_ENTER, self.getlogindata, self.textinput_pwd)
 
