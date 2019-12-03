@@ -185,14 +185,14 @@ class MyApp(wx.App):
         gl.set_value('logwindow', self.frame)
         self.SetTopWindow(self.frame)
         self.frame.Show()
-        wx.FutureCall(1000, self.checkptthread)
+        wx.CallLater(1000, self.checkptthread)
         pub.subscribe(self.updateHandle, "update")
         return True
 
     def checkptthread(self):
         if gl.get_value('thread') is not None and gl.get_value('thread').is_alive():
             # time.sleep(1)
-            wx.FutureCall(1000, self.checkptthread)
+            wx.CallLater(1000, self.checkptthread)
         else:
             self.logger.info('检测到线程关闭，异常退出')
             self.frame.Show()
