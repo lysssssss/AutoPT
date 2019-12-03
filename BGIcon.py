@@ -7,20 +7,21 @@ import Mylogger
 import globalvar as gl
 
 
-class ClockWindow(wx.Window):
-    def __init__(self):
-        wx.Window.__init__(self)
-        self.logger = gl.get_value('logger').logger
-        self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
-        self.timer.Start(1000)
-
-    def OnTimer(self, event):
-        if gl.get_value('thread').is_alive():
-            pass
-        else:
-            self.logger.info('检测到线程关闭，异常退出')
-            wx.Exit()
+# class ClockWindow(wx.Window):
+#     def __init__(self):
+#         wx.Window.__init__(self)
+#         self.logger = gl.get_value('logger').logger
+#         self.timer = wx.Timer(self)
+#         self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
+#         self.timer.Start(1000)
+#
+#     def OnTimer(self, event):
+#         if gl.get_value('thread') is not None and gl.get_value('thread').is_alive():
+#             pass
+#         else:
+#             self.logger.info('检测到线程关闭，异常退出')
+#             wx.MessageBox('检测到异常线程关闭', "AutoPT")
+#             wx.Exit()
 
 
 class MyTaskBarIcon(wx.adv.TaskBarIcon):
@@ -140,13 +141,12 @@ class LoginFrame(wx.Dialog):
         self.Destroy()
 
 
-
 class MyFrame(wx.Frame):
     ICON = "logo.ico"  # 图标地址
 
     def __init__(self):
         wx.Frame.__init__(self, parent=None, id=1, title='AutoPT', pos=wx.DefaultPosition,
-                          size=(1000, 700), style=wx.CAPTION | wx.CLOSE_BOX , name='frame')
+                          size=(1000, 700), style=wx.CAPTION | wx.CLOSE_BOX, name='frame')
 
         self.SetIcon(wx.Icon(self.ICON))  # 设置图标和标题
 
@@ -172,6 +172,7 @@ class MyApp(wx.App):
         self.frame = None
         self.TaskBar = None
         self.timer = None
+        self.logger = gl.get_value('logger').logger
         # list是为了引用传参
         self.loginflag = [False]
         wx.App.__init__(self, redirect, filename)
@@ -179,12 +180,22 @@ class MyApp(wx.App):
     def OnInit(self):
         self.frame = MyFrame()
         self.TaskBar = MyTaskBarIcon(self.frame)  # 显示系统托盘图标
-        self.timer = ClockWindow()
+        # self.timer = ClockWindow()
         gl.set_value('logwindow', self.frame)
         self.SetTopWindow(self.frame)
         self.frame.Show()
+        wx.FutureCall(1000, self.checkptthread)
         pub.subscribe(self.updateHandle, "update")
         return True
+
+    def checkptthread(self):
+        if gl.get_value('thread') is not None and gl.get_value('thread').is_alive():
+            # time.sleep(1)
+            wx.FutureCall(1000, self.checkptthread)
+        else:
+            self.logger.info('检测到线程关闭，异常退出')
+            wx.MessageBox('检测到异常线程关闭', "AutoPT")
+            wx.Exit()
 
     def updateHandle(self, msg):
         frame = LoginFrame(msg[0], msg[1], self.loginflag, self.frame)
