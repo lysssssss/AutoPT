@@ -1,5 +1,4 @@
 import time
-from threading import Thread
 
 import AutoPT_BYR
 import BGIcon
@@ -15,10 +14,10 @@ def run():
 
     if gl.get_value('config').switch('byr'):
         auto_byr = AutoPT_BYR.Byr()
-        maxtime *=gl.get_value('config').intervaltime('byr')
+        maxtime *= gl.get_value('config').intervaltime('byr')
 
     if gl.get_value('config').switch('tju'):
-        #auto_tju = AutoPT_TJU.Tju()
+        # auto_tju = AutoPT_TJU.Tju()
         maxtime *= gl.get_value('config').intervaltime('tju')
         pass
 

@@ -115,7 +115,7 @@ class Byr(object):
         else:
             self.logger.debug('Load cookies by login')
             self.login()
-            #self._save()
+            # self._save()
 
     @property
     def pages(self):

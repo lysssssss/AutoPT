@@ -132,7 +132,7 @@ class Config(object):
         return {
             'BYR': self.byrconfig,
             'TJU': self.tjuconfig
-            }
+        }
 
     def switch(self, name):
         return self.getnameconfig()[name.upper()]['switch']
@@ -178,5 +178,5 @@ class Config(object):
 
 if __name__ == '__main__':
     config = Config()
-    print (config['BYR'])
+    print(config['BYR'])
     pass

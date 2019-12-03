@@ -1,5 +1,4 @@
 import logging
-import sys
 from logging import handlers
 
 import globalvar as gl
@@ -13,7 +12,6 @@ class LogginRedirectHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
         gl.get_value('logwindow').textctrl.AppendText(msg + '\n')
-
 
 
 class Mylogger(object):
@@ -43,7 +41,6 @@ class Mylogger(object):
 
         loggingRedirectHandler = LogginRedirectHandler()
         loggingRedirectHandler.setFormatter(formatter)
-
 
         self._logger.addHandler(th)
         self._logger.addHandler(console)
