@@ -32,6 +32,7 @@ class AutoPT(object):
         self.cookiefilename = self.stationname + '_cookie'
         self._root = self.config['root']
         self.list = []
+        self.autoptpage = AutoPT_Page
         self.qbapi = QBmana.QBAPI(self.config)
         if os.path.exists(self.csvfilename):
             self.logger.debug('Read list.csv')
@@ -121,9 +122,20 @@ class AutoPT(object):
         n = 0
         try:
             # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_=filterclass) or page.find_all('tr', class_='twoupfree_bg'):
+            for line in page.find_all('tr', class_=filterclass):
                 if n == 0:
-                    yield (AutoPT_Page(line))
+                    yield (self.autoptpage(line))
+                    n = 1
+                else:
+                    n -= 1
+        except BaseException as e:
+            self.logger.error(e)
+        n = 0
+        try:
+            # 防止网页获取失败时的异常
+            for line in page.find_all('tr', class_='twoupfree_bg'):
+                if n == 0:
+                    yield (self.autoptpage(line))
                     n = 1
                 else:
                     n -= 1
@@ -147,6 +159,9 @@ class AutoPT(object):
                 trytime -= 1
                 time.sleep(20)
 
+    def pageinfotocsv(self, f, page, thash):
+        f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,' + str(thash) + '\n')
+
     def start(self):
         """Start spider"""
         self.logger.debug('Start Spider')
@@ -154,44 +169,36 @@ class AutoPT(object):
         with open(self.csvfilename, 'a', encoding='UTF-8') as f:
             try:
                 for page in self.pages:
-                    self.logger.debug(page.id + ',' + page.name + ',' + page.type + ',' + str(page.size) + 'GB,' + str(
-                        page.seeders) + ',' + str(page.snatched))
                     if page.id not in self.list and page.ok:
                         self.logger.info('Download ' + page.name)
                         req_dl = self.getdownload(page.id)
                         thash = TorrentHash.get_torrent_hash40(req_dl.content) if req_dl.status_code == 200 else ''
 
-                        if self.config['auto_flag']:
+                        if self.config['autoflag']:
                             # check disk capaciry
                             if req_dl.status_code == 200:
+                                self.logger.info('Add ' + page.name)
                                 self.qbapi.addtorrent(req_dl.content, thash, page.size)
-                                f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,'
-                                        + str(page.seeders) + ','
-                                        + str(thash) + '\n')
+                                self.pageinfotocsv(f, page, thash)
                                 self.list.append(page.id)
                                 # 防反爬虫
                                 time.sleep(3)
 
                             else:
-                                self.logger.error('Download Error:' + page.id + ',' + page.name + ','
-                                                  + page.type + ',' + str(page.size) + 'GB,'
-                                                  + str(page.seeders) + ',' + str(page.snatched))
+                                self.logger.error('Download Error:')
                         else:
                             if req_dl.status_code == 200:
+                                self.logger.info('Add ' + page.name)
                                 filename = req_dl.headers['content-disposition']
                                 filename = unquote(filename[filename.find('name') + 5:])
                                 with open(self.config['dlroot'] + filename, 'wb') as fp:
                                     fp.write(req_dl.content)
                                 self.list.append(page.id)
-                                f.write(
-                                    page.id + ',' + page.name + ',' + str(page.size) + 'GB,' + str(page.seeders) + ','
-                                    + str(thash) + '\n')
+                                self.pageinfotocsv(f, page, thash)
                                 # 防反爬虫
                                 time.sleep(3)
                             else:
-                                self.logger.error('Download Error:' + page.id + ',' + page.name + ','
-                                                  + page.type + ',' + str(page.size) + 'GB,'
-                                                  + str(page.seeders) + ',' + str(page.snatched))
+                                self.logger.error('Download Error:')
             except BaseException as e:
                 self.logger.error(e)
 
@@ -206,8 +213,8 @@ class AutoPT(object):
         while trytime < 6:
 
             if req.status_code == 200:
-                filename = req.headers['content-disposition']
-                filename = unquote(filename[filename.find('name') + 5:])
+                # filename = req.headers['content-disposition']
+                # filename = unquote(filename[filename.find('name') + 5:])
                 # with open(self.config['dlroot'] + filename, 'wb') as f:
                 # f.write(req.content)
                 break
@@ -226,12 +233,14 @@ class AutoPT_Page(object):
         """Init variables
         :soup: Soup
         """
+        self.logger = gl.get_value('logger').logger
 
         url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
         self.type = soup.img['title']
         self.size = self.tosize(soup.find_all('td')[-5].text)
         self.seeders = int(soup.find_all('td')[-4].text.replace(',', ''))
+        self.leechers = int(soup.find_all('td')[-3].text.replace(',', ''))
         self.snatched = int(soup.find_all('td')[-2].text.replace(',', ''))
         self.id = parse_qs(urlparse(url).query)['id'][0]
 
@@ -240,6 +249,8 @@ class AutoPT_Page(object):
         """Check torrent info
         :returns: If a torrent are ok to be downloaded
         """
+        self.logger.debug(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
+            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched))
         return self.size < 2048
 
     def tosize(self, text):
@@ -247,10 +258,20 @@ class AutoPT_Page(object):
         :text: 123GB or 123MB
         :returns: 123(GB) or 0.123(GB)
         """
+        size = 0
         if text.endswith('MB'):
             size = float(text[:-2].replace(',', '')) / 1024
         elif text.endswith('TB'):
             size = float(text[:-2].replace(',', '')) * 1024
-        else:
+        elif text.endswith('GB'):
             size = float(text[:-2].replace(',', ''))
+        elif text.endswith('MiB'):
+            size = float(text[:-3].replace(',', '')) / 1024
+        elif text.endswith('TiB'):
+            size = float(text[:-3].replace(',', '')) * 1024
+        elif text.endswith('GiB'):
+            size = float(text[:-3].replace(',', ''))
+        else:
+            gl.get_value('logger').logger.error('Error while transfer size')
+            raise Exception('Error while transfer size')
         return size

@@ -103,21 +103,28 @@ class LoginFrame(wx.Dialog):
         sizer.Add(self.textinput_pwd, pos=(1, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
         self.Bind(wx.EVT_TEXT_ENTER, self.getlogindata, self.textinput_pwd)
 
-        # 添加验证码字段，并加入页面布局，为第三行，第一列
-        text2 = wx.StaticText(panel, label="验证码")
-        sizer.Add(text2, pos=(2, 0), flag=wx.ALL, border=5)
+        if image is not None:
+            # 添加验证码字段，并加入页面布局，为第三行，第一列
+            text2 = wx.StaticText(panel, label="验证码")
+            sizer.Add(text2, pos=(2, 0), flag=wx.ALL, border=5)
 
-        # 添加文本框字段，并加入页面布局，为第三行，第2列
+            # 添加文本框字段，并加入页面布局，为第三行，第2列
         self.textinput_captcha = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
-        sizer.Add(self.textinput_captcha, pos=(2, 1), flag=wx.ALL, border=5)
-        self.Bind(wx.EVT_TEXT_ENTER, self.getlogindata, self.textinput_captcha)
+        self.textinput_captcha.Hide()
 
-        # 添加验证码图片，并加入页面布局，为第三行，第3列
-        # image = wx.Image(image, wx.BITMAP_TYPE_ANY).Rescale(80, 25).ConvertToBitmap()  # 获取图片，转化为Bitmap形式
-        # image = image.resize((int(image.size[0]/2), int(image.size[1]/2)))
-        image = wx.Bitmap.FromBuffer(image.size[0], image.size[1], image.tobytes())
-        self.bmp = wx.StaticBitmap(panel, -1, image)  # 转化为wx.StaticBitmap()形式
-        sizer.Add(self.bmp, pos=(2, 2), flag=wx.ALL, border=5)
+        if image is not None:
+            sizer.Add(self.textinput_captcha, pos=(2, 1), flag=wx.ALL, border=5)
+            self.Bind(wx.EVT_TEXT_ENTER, self.getlogindata, self.textinput_captcha)
+
+            # 添加验证码图片，并加入页面布局，为第三行，第3列
+            # image = wx.Image(image, wx.BITMAP_TYPE_ANY).Rescale(80, 25).ConvertToBitmap()  # 获取图片，转化为Bitmap形式
+            # image = image.resize((int(image.size[0]/2), int(image.size[1]/2)))
+            image = wx.Bitmap.FromBuffer(image.size[0], image.size[1], image.tobytes())
+            self.bmp = wx.StaticBitmap(panel, -1, image)  # 转化为wx.StaticBitmap()形式
+            sizer.Add(self.bmp, pos=(2, 2), flag=wx.ALL, border=5)
+        else:
+            #不需要验证码，随便填一个
+            self.textinput_captcha.SetValue('invalid')
 
         # 添加登录按钮，并加入页面布局，为第四行，第2列
         btn = wx.Button(panel, -1, "登录")
@@ -131,7 +138,9 @@ class LoginFrame(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.onExit)  # 绑定“退出”选项的点击事件
 
     def getlogindata(self, event):
-        if self.textinput_pwd.GetValue() == '' or self.textinput_captcha.GetValue() == '' or self.textinput_user.GetValue() == '':
+        if self.textinput_pwd.GetValue() == '' \
+                or self.textinput_captcha.GetValue() == '' \
+                or self.textinput_user.GetValue() == '':
             wx.MessageBox('用户名密码验证码不能为空', "Error")
             return
         gl.set_value('logindata', [True,

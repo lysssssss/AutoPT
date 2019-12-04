@@ -11,7 +11,7 @@ class Config(object):
         if key.upper() == 'BYR':
             return self.byrconfig
         elif key.upper() == 'TJU':
-            return self.byrconfig
+            return self.tjuconfig
         return {}
 
     def __init__(self):
@@ -26,7 +26,7 @@ class Config(object):
             'capacityuint': 'GB',
             'capacitynum': 0,
             'dlroot': '',
-            'auto_flag': False,
+            'autoflag': False,
             'intervaltime': 60,
             'keeptorrenttime': 0,
             'root': 'https://bt.byr.cn/'
@@ -42,7 +42,7 @@ class Config(object):
             'capacityuint': 'GB',
             'capacitynum': 0,
             'dlroot': '',
-            'auto_flag': False,
+            'autoflag': False,
             'intervaltime': 60,
             'keeptorrenttime': 0,
             'root': 'https://www.tjupt.org/'
@@ -90,7 +90,7 @@ class Config(object):
             if not pt_config['dlroot'].endswith('/'):
                 pt_config['dlroot'] = pt_config['dlroot'] + '/'
         if 'Auto_management' in paras:
-            pt_config['auto_flag'] = paras['Auto_management']
+            pt_config['autoflag'] = paras['Auto_management']
         if 'IntervalTime' in paras:
             pt_config['intervaltime'] = paras['IntervalTime']
         if 'CapacityNum' in paras:
@@ -115,7 +115,7 @@ class Config(object):
         self.transcapacity(pt_config)
         # 处理异常情况，强制关闭磁盘管理
         if pt_config['capacitynum'] == 0:
-            pt_config['auto_flag'] = False
+            pt_config['autoflag'] = False
 
     def readlogconfig(self, para):
         if 'log' in para:

@@ -6,6 +6,7 @@ import BGIcon
 import Myconfig
 import Mylogger
 import globalvar as gl
+from AutoPT_TJU import AutoPT_TJU
 
 
 def run():
@@ -18,7 +19,7 @@ def run():
         maxtime *= gl.get_value('config').intervaltime('byr')
 
     if gl.get_value('config').switch('tju'):
-        # auto_tju = AutoPT_TJU()
+        auto_tju = AutoPT_TJU()
         maxtime *= gl.get_value('config').intervaltime('tju')
         pass
 
@@ -26,9 +27,11 @@ def run():
 
     while thread_flag:
         if auto_byr is not None and counttime % gl.get_value('config').intervaltime('byr') == 0:
-            auto_byr.start()
+            # auto_byr.start()
+            pass
         if auto_tju is not None and counttime % gl.get_value('config').intervaltime('tju') == 0:
             auto_tju.start()
+            pass
         counttime += 1
         if counttime >= maxtime:
             counttime = 0
