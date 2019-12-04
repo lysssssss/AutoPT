@@ -194,6 +194,7 @@ class MyApp(wx.App):
         gl.set_value('logwindow', self.frame)
         self.SetTopWindow(self.frame)
         self.frame.Show()
+        self.frame.Raise()
         wx.CallLater(1000, self.checkptthread)
         pub.subscribe(self.updateHandle, "update")
         return True
