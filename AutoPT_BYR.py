@@ -15,6 +15,9 @@ class AutoPT_BYR(AutoPT):
         super(AutoPT_BYR, self).__init__('BYR')
         self.autoptpage = AutoPT_Page_BYR
 
+    def judgetorrentok(self, page):
+        return True
+
 
 class AutoPT_Page_BYR(AutoPT_Page):
     """Torrent Page Info"""
@@ -24,10 +27,3 @@ class AutoPT_Page_BYR(AutoPT_Page):
         :soup: Soup
         """
         AutoPT_Page.__init__(self, soup)
-
-    @property
-    def ok(self):
-        """Check torrent info
-        :returns: If a torrent are ok to be downloaded
-        """
-        return self.size < 2048

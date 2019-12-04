@@ -1,6 +1,5 @@
 import datetime
 import time
-from urllib.parse import parse_qs, urlparse
 
 import globalvar as gl
 from AutoPT import AutoPT, AutoPT_Page
@@ -37,6 +36,9 @@ class AutoPT_TJU(AutoPT):
             return False
         return True
 
+    def judgetorrentok(self, page):
+        return page.ipv6 == 'conn-yes'
+
 
 class AutoPT_Page_TJU(AutoPT_Page):
     """Torrent Page Info"""
@@ -45,9 +47,7 @@ class AutoPT_Page_TJU(AutoPT_Page):
         """Init variables
         :soup: Soup
         """
-        # AutoPT_Page.__init__(self, soup)
-        url = soup.find(class_='torrentname').a['href']
-        self.name = soup.find(class_='torrentname').b.text
+        super(AutoPT_Page_TJU, self).__init__(soup)
         self.now = time.time()
         try:
             self.lefttime = soup.find(class_='torrentname').span.text
@@ -56,12 +56,7 @@ class AutoPT_Page_TJU(AutoPT_Page):
             # 没有限制时间
             self.lefttime = -1
             self.futherstamp = -1
-        self.type = soup.img['title']
-        self.size = self.tosize(soup.find_all('td')[-5].text)
-        self.seeders = int(soup.find_all('td')[-4].text.replace(',', ''))
-        self.leechers = int(soup.find_all('td')[-3].text.replace(',', ''))
-        self.snatched = int(soup.find_all('td')[-2].text.replace(',', ''))
-        self.id = parse_qs(urlparse(url).query)['id'][0]
+
         # conn conn-yes
         # conn conn--
         # conn conn-no
@@ -87,10 +82,3 @@ class AutoPT_Page_TJU(AutoPT_Page):
             # strt = strt[strt.find('秒') + 1:]
 
         return time.mktime(futhertime.timetuple())
-
-    @property
-    def ok(self):
-        """Check torrent info
-        :returns: If a torrent are ok to be downloaded
-        """
-        return self.size < 2048 and self.ipv6 == 'conn-yes'

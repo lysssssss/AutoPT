@@ -1,6 +1,7 @@
 import os
 import pickle
 import time
+from abc import abstractmethod, ABC
 from io import BytesIO
 from urllib.parse import unquote
 from urllib.parse import urlparse, parse_qs
@@ -15,7 +16,7 @@ import TorrentHash
 import globalvar as gl
 
 
-class AutoPT(object):
+class AutoPT(ABC):
     """login/logout/getpage"""
 
     def __init__(self, stationname):
@@ -119,6 +120,7 @@ class AutoPT(object):
             filterurl = 'torrents.php?spstate=2'
             filterclass = 'free_bg'
         page = self.get_url(filterurl)
+        self.logger.debug('Get pages Done')
         n = 0
         try:
             # 防止网页获取失败时的异常
@@ -162,6 +164,11 @@ class AutoPT(object):
     def pageinfotocsv(self, f, page, thash):
         f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,' + str(thash) + '\n')
 
+    # 纯虚函数,子类必须实现软条件
+    @abstractmethod
+    def judgetorrentok(self, page):
+        pass
+
     def start(self):
         """Start spider"""
         self.logger.debug('Start Spider [' + self.stationname + ']')
@@ -170,38 +177,51 @@ class AutoPT(object):
             try:
                 for page in self.pages:
                     if page.id not in self.list and page.ok:
+                        # page.ok为硬性条件,不会变的状态添加到硬条件里
+                        # 以下方法为软条件, 例如种子连接数, 类型, 剩余free时间等等属于变化的条件都为软条件
+                        # 不符合条件的就不下载,直接添加到csv里
+                        if not self.judgetorrentok(page):
+                            self.pageinfotocsv(f, page, thash)
+                            continue
+
+                        # 通过条件后再开始下载
                         self.logger.info('Download ' + page.name)
                         req_dl = self.getdownload(page.id)
                         thash = TorrentHash.get_torrent_hash40(req_dl.content) if req_dl.status_code == 200 else ''
-
-                        if self.config['autoflag']:
-                            # check disk capaciry
-                            if req_dl.status_code == 200:
-                                self.logger.info('Add ' + page.name)
-                                self.qbapi.addtorrent(req_dl.content, thash, page.size)
-                                self.pageinfotocsv(f, page, thash)
-                                self.list.append(page.id)
-                                # 防反爬虫
-                                time.sleep(3)
-
-                            else:
-                                self.logger.error('Download Error:')
-                        else:
-                            if req_dl.status_code == 200:
-                                self.logger.info('Add ' + page.name)
-                                filename = req_dl.headers['content-disposition']
-                                filename = unquote(filename[filename.find('name') + 5:])
-                                with open(self.config['dlroot'] + filename, 'wb') as fp:
-                                    fp.write(req_dl.content)
-                                self.list.append(page.id)
-                                self.pageinfotocsv(f, page, thash)
-                                # 防反爬虫
-                                time.sleep(3)
-                            else:
-                                self.logger.error('Download Error:')
+                        self.downloadtorrent(f, page, req_dl, thash)
             except BaseException as e:
                 self.logger.error(e)
         self.logger.info('Done')
+
+    def downloadtorrent(self, f, page, req_dl, thash):
+        try:
+            if self.config['autoflag']:
+                # check disk capaciry
+                if req_dl.status_code == 200:
+                    self.logger.info('Add ' + page.name)
+                    self.qbapi.addtorrent(req_dl.content, thash, page.size)
+                    self.pageinfotocsv(f, page, thash)
+                    self.list.append(page.id)
+                    # 防反爬虫
+                    time.sleep(3)
+
+                else:
+                    self.logger.error('Download Error:')
+            else:
+                if req_dl.status_code == 200:
+                    self.logger.info('Add ' + page.name)
+                    filename = req_dl.headers['content-disposition']
+                    filename = unquote(filename[filename.find('name') + 5:])
+                    with open(self.config['dlroot'] + filename, 'wb') as fp:
+                        fp.write(req_dl.content)
+                    self.list.append(page.id)
+                    self.pageinfotocsv(f, page, thash)
+                    # 防反爬虫
+                    time.sleep(3)
+                else:
+                    self.logger.error('Download Error:')
+        except BaseException as e:
+            self.logger.error(e)
 
     def getdownload(self, id_):
         """Download torrent in url
@@ -252,7 +272,8 @@ class AutoPT_Page(object):
         """
         self.logger.debug(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
             self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched))
-        return self.size < 2048
+        # 判断self.seeders > 0 因为没人做种时无法知道此种子的连接性如何, 等待有人做种
+        return self.size < 2048 and self.seeders > 0
 
     def tosize(self, text):
         """Convert text 'xxxGB' to int size
@@ -273,6 +294,6 @@ class AutoPT_Page(object):
         elif text.endswith('GiB'):
             size = float(text[:-3].replace(',', ''))
         else:
-            gl.get_value('logger').logger.error('Error while transfer size')
+            self.logger.error('Error while transfer size')
             raise Exception('Error while transfer size')
         return size
