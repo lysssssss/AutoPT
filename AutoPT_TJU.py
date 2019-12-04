@@ -1,15 +1,10 @@
-"""
-Byr
-自动从bt.byr.cn上下载免费种子文件，保存到指定位置
-Author: LYS
-Create: 2019年11月13日
-"""
 import datetime
 import time
 from urllib.parse import parse_qs, urlparse
 
-from AutoPT import AutoPT, AutoPT_Page
 import globalvar as gl
+from AutoPT import AutoPT, AutoPT_Page
+
 
 class AutoPT_TJU(AutoPT):
     """login/logout/getpage"""
@@ -80,7 +75,7 @@ class AutoPT_Page_TJU(AutoPT_Page):
         futhertime = now
         if '天' in strt:
             futhertime += datetime.timedelta(days=int(strt[:strt.find('天')]))
-            strt = strt[strt.find('天')+1:]
+            strt = strt[strt.find('天') + 1:]
         if '时' in strt:
             futhertime += datetime.timedelta(hours=int(strt[:strt.find('时')]))
             strt = strt[strt.find('时') + 1:]
@@ -99,4 +94,3 @@ class AutoPT_Page_TJU(AutoPT_Page):
         :returns: If a torrent are ok to be downloaded
         """
         return self.size < 2048 and self.ipv6 == 'conn-yes'
-
