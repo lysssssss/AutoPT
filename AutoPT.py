@@ -55,7 +55,7 @@ class AutoPT(ABC):
                 'input', attrs={'name': 'imagehash'})['value']
             self.logger.info('Image url: ' + image_url)
             self.logger.info('Image hash: ' + image_hash)
-            req = self._session.get(self._root + image_url)
+            req = self._session.get(self._root + image_url, timeout=(30, 30))
             image_file = Image.open(BytesIO(req.content))
             # image_file.show()
             # captcha_text = input('If image can not open in your system, then open the url below in browser\n'
@@ -75,7 +75,7 @@ class AutoPT(ABC):
                 'imagehash': image_hash
             }
             main_page = self._session.post(
-                self._root + 'takelogin.php', login_data)
+                self._root + 'takelogin.php', login_data, timeout=(30, 30))
             if main_page.url != self._root + 'index.php':
                 self.logger.error('Login error')
                 return False
@@ -154,12 +154,12 @@ class AutoPT(ABC):
         while trytime > 0:
             self.random_agent()
             try:
-                req = self._session.get(self._root + url)
+                req = self._session.get(self._root + url, timeout=(30, 30))
                 return BeautifulSoup(req.text, 'lxml')
             except BaseException as e:
                 self.logger.error(e)
                 trytime -= 1
-                time.sleep(20)
+                time.sleep(30)
 
     def pageinfotocsv(self, f, page, thash):
         f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,' + str(thash) + '\n')

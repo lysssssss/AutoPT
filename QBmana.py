@@ -279,12 +279,12 @@ class QBAPI(object):
         trytime = 3
         while trytime > 0:
             try:
-                req = self._session.get(self._root + url)
+                req = self._session.get(self._root + url, timeout=(30, 30))
                 return req
             except BaseException as e:
                 self.logger.error(e)
                 trytime -= 1
-                time.sleep(20)
+                time.sleep(30)
 
     def post_url(self, url, data):
         """Return BeautifulSoup Pages
@@ -295,12 +295,12 @@ class QBAPI(object):
         trytime = 3
         while trytime > 0:
             try:
-                req = self._session.post(self._root + url, files=data)
+                req = self._session.post(self._root + url, files=data, timeout=(30, 30))
                 return req
             except BaseException as e:
                 self.logger.error(e)
                 trytime -= 1
-                time.sleep(20)
+                time.sleep(30)
 
     def addtorrent(self, content, thash, tsize):
         data = {'torrents': content}
