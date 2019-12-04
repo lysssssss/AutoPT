@@ -1,3 +1,5 @@
+import datetime
+
 import wx
 import wx.adv
 from pubsub import pub
@@ -205,8 +207,32 @@ class MyApp(wx.App):
         self.frame.Show()
         self.frame.Raise()
         wx.CallLater(1000, self.checkptthread)
+        self.setclearlogtimer()
         pub.subscribe(self.updateHandle, "update")
         return True
+
+    def setclearlogtimer(self):
+        # 获取现在时间
+        now_time = datetime.datetime.now()
+        # 获取明天时间
+        next_time = now_time + datetime.timedelta(days=+1)
+        next_year = next_time.date().year
+        next_month = next_time.date().month
+        next_day = next_time.date().day
+        # 获取明天0点时间
+        next_time = datetime.datetime.strptime(
+            str(next_year) + "-" + str(next_month) + "-" + str(next_day) + " 00:00:00", "%Y-%m-%d %H:%M:%S")
+        # 获取昨天时间
+        # last_time = now_time + datetime.timedelta(days=-1)
+
+        # 获取距离明天0点时间，单位为秒
+        timer_start_time = int((next_time - now_time).total_seconds() * 1000)
+        wx.CallLater(timer_start_time, self.clearlog)
+
+    def clearlog(self):
+        self.frame.textctrl.SetValue('')
+        # 设置下一次clear定时
+        self.setclearlogtimer()
 
     def checkptthread(self):
         if gl.get_value('thread') is not None and gl.get_value('thread').is_alive():
