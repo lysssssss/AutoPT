@@ -164,7 +164,7 @@ class AutoPT(object):
 
     def start(self):
         """Start spider"""
-        self.logger.debug('Start Spider')
+        self.logger.debug('Start Spider [' + self.stationname + ']')
         self._load()
         with open(self.csvfilename, 'a', encoding='UTF-8') as f:
             try:

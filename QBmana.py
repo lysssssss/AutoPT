@@ -17,7 +17,7 @@ class QBAPI(object):
         self.config = config
 
         self._root = 'http://' + self.config['qbaddr']
-        self.logger.info('QBAPI Init =' + self._root)
+        self.logger.debug('QBAPI Init =' + self._root)
 
         self._session = requests.session()
         self._session.headers = {
@@ -72,7 +72,7 @@ class QBAPI(object):
             if self.diskletter != '':
                 # 留出1G容量防止空间分配失败
                 diskremainsize = self.getdiskleftsize(self.diskletter) - 1 - (pretotalsize - nowtotalsize)
-                self.logger.info('diskremainsize =' + str(diskremainsize) + 'GB')
+                self.logger.debug('diskremainsize =' + str(diskremainsize) + 'GB')
             self.dynamiccapacity = self.config['capacity'] \
                 if pretotalsize + diskremainsize > self.config['capacity'] else pretotalsize + diskremainsize
             self.logger.info('dynamiccapacity =' + str(self.dynamiccapacity) + 'GB')
@@ -117,8 +117,8 @@ class QBAPI(object):
             now_sumsize += val['size'] if val['progress'] == 1 else self.getdirsize(val['save_path'] + val['name'])
         now_sumsize /= (1024 * 1024 * 1024)
         predict_sumsize /= (1024 * 1024 * 1024)
-        self.logger.info('predict torrent sum size =' + str(predict_sumsize) + 'GB')
-        self.logger.info('now torrent sum size =' + str(now_sumsize) + 'GB')
+        self.logger.debug('predict torrent sum size =' + str(predict_sumsize) + 'GB')
+        self.logger.debug('now torrent sum size =' + str(now_sumsize) + 'GB')
         return now_sumsize, predict_sumsize
 
     def selecttorrent(self, filesize, gtl, totalsize):
@@ -361,7 +361,7 @@ class QBAPI(object):
     def getqbtpreferences(self):
         info = self.get_url('/api/v2/app/preferences')
         if info.status_code == 200:
-            self.logger.info('get preferences successfully')
+            self.logger.debug('get preferences successfully')
             listjs = info.json()
             return listjs
         # qbt web访问失败
@@ -370,8 +370,9 @@ class QBAPI(object):
 
 if __name__ == '__main__':
     gl._init()
-    gl.set_value('config', Myconfig.Config())
+    config = Myconfig.Config()['BYR']
+    gl.set_value('config', config)
     gl.set_value('logger', Mylogger.Mylogger())
-    api = QBAPI()
+    api = QBAPI(config)
     # api.gettorrentcontent('518c06ad1a248bf5d042c226cd70a1707b187b79')
     api.checksize(123)
