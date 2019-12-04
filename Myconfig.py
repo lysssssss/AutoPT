@@ -16,7 +16,7 @@ class Config(object):
 
     def __init__(self):
         self.byrconfig = {
-            'switch': False,
+            'switch': True,
             'checktrackerhttps': False,
             'checkptmode': 1,
             'maincategory': '',

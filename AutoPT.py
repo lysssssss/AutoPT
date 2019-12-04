@@ -201,6 +201,7 @@ class AutoPT(object):
                                 self.logger.error('Download Error:')
             except BaseException as e:
                 self.logger.error(e)
+        self.logger.info('Done')
 
     def getdownload(self, id_):
         """Download torrent in url

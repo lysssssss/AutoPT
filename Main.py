@@ -27,7 +27,7 @@ def run():
 
     while thread_flag:
         if auto_byr is not None and counttime % gl.get_value('config').intervaltime('byr') == 0:
-            # auto_byr.start()
+            auto_byr.start()
             pass
         if auto_tju is not None and counttime % gl.get_value('config').intervaltime('tju') == 0:
             auto_tju.start()

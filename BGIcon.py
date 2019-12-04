@@ -110,7 +110,6 @@ class LoginFrame(wx.Dialog):
 
             # 添加文本框字段，并加入页面布局，为第三行，第2列
         self.textinput_captcha = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
-        self.textinput_captcha.Hide()
 
         if image is not None:
             sizer.Add(self.textinput_captcha, pos=(2, 1), flag=wx.ALL, border=5)
@@ -123,7 +122,8 @@ class LoginFrame(wx.Dialog):
             self.bmp = wx.StaticBitmap(panel, -1, image)  # 转化为wx.StaticBitmap()形式
             sizer.Add(self.bmp, pos=(2, 2), flag=wx.ALL, border=5)
         else:
-            #不需要验证码，随便填一个
+            # 不需要验证码，随便填一个
+            self.textinput_captcha.Hide()
             self.textinput_captcha.SetValue('invalid')
 
         # 添加登录按钮，并加入页面布局，为第四行，第2列
