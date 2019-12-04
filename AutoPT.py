@@ -177,17 +177,17 @@ class AutoPT(ABC):
             try:
                 for page in self.pages:
                     if page.id not in self.list and page.ok:
+                        req_dl = self.getdownload(page.id)
+                        thash = TorrentHash.get_torrent_hash40(req_dl.content) if req_dl.status_code == 200 else ''
+
                         # page.ok为硬性条件,不会变的状态添加到硬条件里
                         # 以下方法为软条件, 例如种子连接数, 类型, 剩余free时间等等属于变化的条件都为软条件
                         # 不符合条件的就不下载,直接添加到csv里
                         if not self.judgetorrentok(page):
                             self.pageinfotocsv(f, page, thash)
                             continue
-
                         # 通过条件后再开始下载
                         self.logger.info('Download ' + page.name)
-                        req_dl = self.getdownload(page.id)
-                        thash = TorrentHash.get_torrent_hash40(req_dl.content) if req_dl.status_code == 200 else ''
                         self.downloadtorrent(f, page, req_dl, thash)
             except BaseException as e:
                 self.logger.error(e)
