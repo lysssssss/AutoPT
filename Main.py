@@ -1,11 +1,11 @@
 import time
 from threading import Thread
 
-from AutoPT_BYR import AutoPT_BYR
 import BGIcon
 import Myconfig
 import Mylogger
 import globalvar as gl
+from AutoPT_BYR import AutoPT_BYR
 from AutoPT_TJU import AutoPT_TJU
 
 
