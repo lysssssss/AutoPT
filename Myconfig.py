@@ -28,7 +28,8 @@ class Config(object):
             'dlroot': '',
             'auto_flag': False,
             'intervaltime': 60,
-            'keeptorrenttime': 0
+            'keeptorrenttime': 0,
+            'root': 'https://bt.byr.cn/'
         }
         self.tjuconfig = {
             'switch': False,
@@ -43,7 +44,8 @@ class Config(object):
             'dlroot': '',
             'auto_flag': False,
             'intervaltime': 60,
-            'keeptorrenttime': 0
+            'keeptorrenttime': 0,
+            'root': 'https://www.tjupt.org/'
         }
         if os.path.exists('config.json'):
             f = open('config.json', 'r', encoding='utf-8')

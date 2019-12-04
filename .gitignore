@@ -9,7 +9,8 @@ __pycache__/
 *.txt
 !requirements.txt
 *.csv
-cookie
+test.py
+*_cookie
 *.torrent
 
 

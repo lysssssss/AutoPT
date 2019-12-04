@@ -29,7 +29,7 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
     ID_ABOUT = wx.NewIdRef(count=1)  # 菜单选项“关于”的ID
     ID_EXIT = wx.NewIdRef(count=1)  # 菜单选项“退出”的ID
     ID_SHOW_LOG = wx.NewIdRef(count=1)  # 菜单选项“显示页面”的ID
-    TITLE = "Auto download PT torrent"  # 鼠标移动到图标上显示的文字
+    TITLE = "AutoPT"  # 鼠标移动到图标上显示的文字
 
     def __init__(self, windowhandler):
         wx.adv.TaskBarIcon.__init__(self)

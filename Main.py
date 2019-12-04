@@ -1,7 +1,7 @@
 import time
 from threading import Thread
 
-import AutoPT_BYR
+from AutoPT_BYR import AutoPT_BYR
 import BGIcon
 import Myconfig
 import Mylogger
@@ -14,11 +14,11 @@ def run():
     auto_tju = None
 
     if gl.get_value('config').switch('byr'):
-        auto_byr = AutoPT_BYR.Byr()
+        auto_byr = AutoPT_BYR()
         maxtime *= gl.get_value('config').intervaltime('byr')
 
     if gl.get_value('config').switch('tju'):
-        # auto_tju = AutoPT_TJU.Tju()
+        # auto_tju = AutoPT_TJU()
         maxtime *= gl.get_value('config').intervaltime('tju')
         pass
 

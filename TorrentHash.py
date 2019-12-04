@@ -5,7 +5,7 @@ import magneturi
 import globalvar as gl
 
 
-def get_torrent_hahs40(data):
+def get_torrent_hash40(data):
     try:
         mangetlink = magneturi.from_torrent_data(data)
         mangetlink = mangetlink[mangetlink.find('btih') + 5:mangetlink.find('btih') + 5 + 32]
