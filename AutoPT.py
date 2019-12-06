@@ -171,7 +171,7 @@ class AutoPT(ABC):
 
     def start(self):
         """Start spider"""
-        self.logger.debug('Start Spider [' + self.stationname + ']')
+        self.logger.info('Start Spider [' + self.stationname + ']')
         self._load()
         with open(self.csvfilename, 'a', encoding='UTF-8') as f:
             try:
@@ -270,7 +270,7 @@ class AutoPT_Page(object):
         """Check torrent info
         :returns: If a torrent are ok to be downloaded
         """
-        self.logger.debug(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
+        self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
             self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched))
         # 判断self.seeders > 0 因为没人做种时无法知道此种子的连接性如何, 等待有人做种
         return self.size < 2048 and self.seeders > 0

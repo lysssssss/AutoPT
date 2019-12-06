@@ -11,7 +11,7 @@ class LogginRedirectHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-        gl.get_value('logwindow').textctrl.AppendText(msg + '\n')
+        gl.get_value('logwindow').frame.textctrl.AppendText(msg + '\n')
 
 
 class Mylogger(object):
@@ -39,12 +39,12 @@ class Mylogger(object):
         # midnight 每天凌晨
         th.setFormatter(formatter)  # 设置文件里写入的格式
 
-        loggingRedirectHandler = LogginRedirectHandler()
-        loggingRedirectHandler.setFormatter(formatter)
+        self.loggingRedirectHandler = LogginRedirectHandler()
+        self.loggingRedirectHandler.setFormatter(formatter)
 
         self._logger.addHandler(th)
         self._logger.addHandler(console)
-        self._logger.addHandler(loggingRedirectHandler)
+        self._logger.addHandler(self.loggingRedirectHandler)
 
         if gl.get_value('config').loglevel == 'info':
             self._logger.setLevel(logging.INFO)

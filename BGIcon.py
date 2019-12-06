@@ -50,7 +50,10 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
 
     # “退出”选项的事件处理器
     def onExit(self, event):
+        self.windowhandler.Hide()
         self.logger.debug('菜单退出 点击事件')
+        # 退出时记得把logger的句柄移除，否则永远卡死在handler的emit里
+        self.logger.removeHandler(gl.get_value('logger').loggingRedirectHandler)
         wx.Exit()
 
     # “显示页面”选项的事件处理器
@@ -202,8 +205,8 @@ class MyApp(wx.App):
         self.frame = MyFrame()
         self.TaskBar = MyTaskBarIcon(self.frame)  # 显示系统托盘图标
         # self.timer = ClockWindow()
-        gl.set_value('logwindow', self.frame)
-        self.SetTopWindow(self.frame)
+        gl.set_value('logwindow', self)
+        #self.SetTopWindow(self.frame)
         self.frame.Show()
         self.frame.Raise()
         wx.CallLater(1000, self.checkptthread)
@@ -230,6 +233,8 @@ class MyApp(wx.App):
         wx.CallLater(timer_start_time, self.clearlog)
 
     def clearlog(self):
+        # 刷新图标
+        self.TaskBar.SetIcon(wx.Icon(self.TaskBar.ICON), self.TaskBar.TITLE)
         self.frame.textctrl.SetValue('')
         # 设置下一次clear定时
         self.setclearlogtimer()
