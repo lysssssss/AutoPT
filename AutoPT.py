@@ -163,6 +163,7 @@ class AutoPT(ABC):
 
     def pageinfotocsv(self, f, page, thash):
         f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,' + str(thash) + '\n')
+        self.list.append(page.id)
 
     # 纯虚函数,子类必须实现软条件
     @abstractmethod
