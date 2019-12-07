@@ -193,6 +193,7 @@ class MyFrame(wx.Frame):
 
 class MyApp(wx.App):
     def __init__(self, redirect=False, filename=None):
+        redirect = True if gl.get_value('config').loglevel == 'debug' else False
         self.frame = None
         self.TaskBar = None
         self.timer = None
