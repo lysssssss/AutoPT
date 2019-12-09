@@ -127,7 +127,7 @@ class AutoPT(ABC):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='twoupfree_bg'):
                 if n == 0:
-                    yield (self.autoptpage(line))
+                    yield self.autoptpage(line)
                     n = 1
                 else:
                     n -= 1
@@ -138,7 +138,7 @@ class AutoPT(ABC):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_=filterclass):
                 if n == 0:
-                    yield (self.autoptpage(line))
+                    yield self.autoptpage(line)
                     n = 1
                 else:
                     n -= 1
