@@ -7,6 +7,7 @@ import Myconfig
 import Mylogger
 import globalvar as gl
 from AutoPT_BYR import AutoPT_BYR
+from AutoPT_PTER import AutoPT_PTER
 from AutoPT_TJU import AutoPT_TJU
 
 
@@ -16,7 +17,7 @@ def run():
         maxtime = 1
         auto_byr = None
         auto_tju = None
-
+        auto_pter = None
 
         if gl.get_value('config').switch('byr'):
             auto_byr = AutoPT_BYR()
@@ -25,6 +26,10 @@ def run():
         if gl.get_value('config').switch('tju'):
             auto_tju = AutoPT_TJU()
             maxtime *= gl.get_value('config').intervaltime('tju')
+            pass
+        if gl.get_value('config').switch('pter'):
+            auto_pter = AutoPT_PTER()
+            maxtime *= gl.get_value('config').intervaltime('pter')
             pass
 
         counttime = 0
@@ -36,26 +41,27 @@ def run():
             if auto_tju is not None and counttime % gl.get_value('config').intervaltime('tju') == 0:
                 auto_tju.start()
                 pass
+            if auto_pter is not None and counttime % gl.get_value('config').intervaltime('pter') == 0:
+                auto_pter.start()
+                pass
             counttime += 1
             if counttime >= maxtime:
                 counttime = 0
             time.sleep(1)
     except BaseException:
         logger.exception(traceback.format_exc())
-        #traceback.print_exc(file=open('treace.txt', 'w+'))
+        # traceback.print_exc(file=open('treace.txt', 'w+'))
 
 
 if __name__ == '__main__':
     thread_flag = True
     gl._init()
 
-
     try:
         gl.set_value('config', Myconfig.Config())
         gl.set_value('logger', Mylogger.Mylogger())
 
         gl.set_value('thread', Thread(target=run))
-
 
         app = BGIcon.MyApp()
         gl.set_value('wxpython', app)

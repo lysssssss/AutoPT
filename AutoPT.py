@@ -1,3 +1,4 @@
+import datetime
 import os
 import pickle
 import time
@@ -124,7 +125,7 @@ class AutoPT(ABC):
         n = 0
         try:
             # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_=filterclass):
+            for line in page.find_all('tr', class_='twoupfree_bg'):
                 if n == 0:
                     yield (self.autoptpage(line))
                     n = 1
@@ -135,7 +136,7 @@ class AutoPT(ABC):
         n = 0
         try:
             # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_='twoupfree_bg'):
+            for line in page.find_all('tr', class_=filterclass):
                 if n == 0:
                     yield (self.autoptpage(line))
                     n = 1
@@ -298,3 +299,27 @@ class AutoPT_Page(object):
             self.logger.error('Error while transfer size')
             raise Exception('Error while transfer size')
         return size
+
+    def mystrptime(self, strt):
+        now = datetime.datetime.now()
+        futhertime = now
+        if '月' in strt:
+            futhertime += datetime.timedelta(days=int(strt[:strt.find('月')]) * 30)  # 算30天，应该够一个种子下载完成
+            strt = strt[strt.find('月') + 1:]
+        if '天' in strt:
+            futhertime += datetime.timedelta(days=int(strt[:strt.find('天')]))
+            strt = strt[strt.find('天') + 1:]
+        if '时' in strt:
+            futhertime += datetime.timedelta(hours=int(strt[:strt.find('时')]))
+            strt = strt[strt.find('时') + 1:]
+        if '分' in strt:
+            futhertime += datetime.timedelta(minutes=int(strt[:strt.find('分')]))
+            strt = strt[strt.find('分') + 1:]
+        if '秒' in strt:
+            futhertime += datetime.timedelta(seconds=int(strt[:strt.find('秒')]))
+            # strt = strt[strt.find('秒') + 1:]
+
+        return time.mktime(futhertime.timetuple())
+
+    def matchlefttimestr(self, strt):
+        return '天' in strt or '时' in strt or '分' in strt or '秒' in strt or '月' in strt

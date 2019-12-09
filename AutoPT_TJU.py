@@ -1,6 +1,8 @@
 import datetime
 import time
 
+from bs4 import BeautifulSoup
+
 import globalvar as gl
 from AutoPT import AutoPT, AutoPT_Page
 
@@ -37,7 +39,10 @@ class AutoPT_TJU(AutoPT):
         return True
 
     def judgetorrentok(self, page):
-        return page.ipv6 == 'conn-yes'
+        if page.futherstamp != -1:
+            return page.ipv6 == 'conn-yes' and (page.futherstamp - time.time() > 24 * 60 * 60) and page.seeders < 5
+        else:
+            return page.ipv6 == 'conn-yes' and page.seeders < 5
 
 
 class AutoPT_Page_TJU(AutoPT_Page):
@@ -48,15 +53,20 @@ class AutoPT_Page_TJU(AutoPT_Page):
         :soup: Soup
         """
         super(AutoPT_Page_TJU, self).__init__(soup)
-        self.now = time.time()
         try:
-            self.lefttime = soup.find(class_='torrentname').span.text
-            self.futherstamp = self.mystrptime(str(self.lefttime))
+            self.lefttime = [tmp_span.text for tmp_span
+                             in BeautifulSoup(str(soup.find(class_='torrentname')), 'lxml').find_all('span')
+                             if self.matchlefttimestr(tmp_span.text)]
+            if len(self.lefttime) == 1:
+                self.lefttime = self.lefttime[0]
+                self.futherstamp = self.mystrptime(str(self.lefttime))
+            else:
+                self.lefttime = ''
+                self.futherstamp = -1
         except BaseException as e:
             # 没有限制时间
-            self.lefttime = -1
+            self.lefttime = ''
             self.futherstamp = -1
-
         # conn conn-yes
         # conn conn--
         # conn conn-no
@@ -65,30 +75,12 @@ class AutoPT_Page_TJU(AutoPT_Page):
         self.public4 = soup.find(id='public4')['class'][1]
         pass
 
-    def mystrptime(self, strt):
-        now = datetime.datetime.now()
-        futhertime = now
-        if '天' in strt:
-            futhertime += datetime.timedelta(days=int(strt[:strt.find('天')]))
-            strt = strt[strt.find('天') + 1:]
-        if '时' in strt:
-            futhertime += datetime.timedelta(hours=int(strt[:strt.find('时')]))
-            strt = strt[strt.find('时') + 1:]
-        if '分' in strt:
-            futhertime += datetime.timedelta(minutes=int(strt[:strt.find('分')]))
-            strt = strt[strt.find('分') + 1:]
-        if '秒' in strt:
-            futhertime += datetime.timedelta(seconds=int(strt[:strt.find('秒')]))
-            # strt = strt[strt.find('秒') + 1:]
-
-        return time.mktime(futhertime.timetuple())
-
     @property
     def ok(self):
         """Check torrent info
         :returns: If a torrent are ok to be downloaded
         """
         self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
-            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched))
+            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
         # 判断self.seeders > 0 因为没人做种时无法知道此种子的连接性如何, 等待有人做种
         return self.size < 256 and self.seeders > 0

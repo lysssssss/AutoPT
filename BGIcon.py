@@ -80,7 +80,7 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
 class LoginFrame(wx.Dialog):
     def __init__(self, station, image, loginflag, windowhandler):
         wx.Dialog.__init__(self, parent=None, id=2, title='登录' + station, pos=wx.DefaultPosition,
-                           size=(380, 230), style=wx.CAPTION | wx.CLOSE_BOX, name='login')
+                           size=(380, 250), style=wx.CAPTION | wx.CLOSE_BOX, name='login')
         self.loginflag = loginflag
 
         # 拉起日志窗口
@@ -131,9 +131,19 @@ class LoginFrame(wx.Dialog):
             self.textinput_captcha.Hide()
             self.textinput_captcha.SetValue('invalid')
 
-        # 添加登录按钮，并加入页面布局，为第四行，第2列
+        # 添加账号字段，并加入页面布局，为第四行，第一列
+        text = wx.StaticText(panel, label="用户名")
+        sizer.Add(text, pos=(3, 0), flag=wx.ALL, border=5)
+
+        # 添加文本框字段，并加入页面布局，为第四行，第2,3列
+        self.textinput_secondverify = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
+        self.textinput_secondverify.SetHint('没有则留空')
+        sizer.Add(self.textinput_secondverify, pos=(3, 1), span=(1, 2), flag=wx.EXPAND | wx.ALL, border=5)
+        self.Bind(wx.EVT_TEXT_ENTER, self.getlogindata, self.textinput_secondverify)
+
+        # 添加登录按钮，并加入页面布局，为第五行，第2列
         btn = wx.Button(panel, -1, "登录")
-        sizer.Add(btn, pos=(3, 1), flag=wx.ALL, border=5)
+        sizer.Add(btn, pos=(4, 1), flag=wx.ALL, border=5)
 
         # 为登录按钮绑定login_process事件
         self.Bind(wx.EVT_BUTTON, self.getlogindata, btn)
@@ -151,7 +161,8 @@ class LoginFrame(wx.Dialog):
         gl.set_value('logindata', [True,
                                    {'username': self.textinput_user.GetValue(),
                                     'password': self.textinput_pwd.GetValue(),
-                                    'captcha': self.textinput_captcha.GetValue()}])
+                                    'captcha': self.textinput_captcha.GetValue(),
+                                    'secondverify': self.textinput_secondverify.GetValue()}])
         self.loginflag[0] = True
         self.Close()
 
@@ -160,7 +171,8 @@ class LoginFrame(wx.Dialog):
             gl.set_value('logindata', [False,
                                        {'username': '',
                                         'password': '',
-                                        'captcha': ''}])
+                                        'captcha': '',
+                                        'secondverify': ''}])
             self.loginflag[0] = True
         self.Destroy()
 
@@ -193,7 +205,7 @@ class MyFrame(wx.Frame):
 
 class MyApp(wx.App):
     def __init__(self, redirect=False, filename=None):
-        redirect = True if gl.get_value('config').loglevel == 'debug' else False
+        # redirect = True if gl.get_value('config').loglevel == 'debug' else False
         self.frame = None
         self.TaskBar = None
         self.timer = None

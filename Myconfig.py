@@ -12,11 +12,13 @@ class Config(object):
             return self.byrconfig
         elif key.upper() == 'TJU':
             return self.tjuconfig
+        elif key.upper() == 'PTER':
+            return self.pterconfig
         return {}
 
     def __init__(self):
         self.byrconfig = {
-            'switch': True,
+            'switch': False,
             'checktrackerhttps': False,
             'checkptmode': 1,
             'maincategory': '',
@@ -47,6 +49,22 @@ class Config(object):
             'keeptorrenttime': 0,
             'root': 'https://www.tjupt.org/'
         }
+        self.pterconfig = {
+            'switch': False,
+            'checktrackerhttps': False,
+            'checkptmode': 1,
+            'maincategory': '',
+            'subcategory': [],
+            'qbaddr': '',
+            'capacity': 0,
+            'capacityuint': 'GB',
+            'capacitynum': 0,
+            'dlroot': '',
+            'autoflag': False,
+            'intervaltime': 60,
+            'keeptorrenttime': 0,
+            'root': 'https://pterclub.com/'
+        }
         if os.path.exists('config.json'):
             f = open('config.json', 'r', encoding='utf-8')
             text = jsmin(f.read())
@@ -56,6 +74,7 @@ class Config(object):
             self.readlogconfig(paras)
             self.readbyrconfig(paras)
             self.readtjuconfig(paras)
+            self.readpterconfig(paras)
         else:
             self._logsavetime = 7
             self._loglevel = 'info'
@@ -80,6 +99,12 @@ class Config(object):
         if 'TJU' in param:
             paras = param['TJU']
             self.readcommonconfig(paras, self.tjuconfig)
+            # To add custom config here
+
+    def readpterconfig(self, param):
+        if 'PTER' in param:
+            paras = param['PTER']
+            self.readcommonconfig(paras, self.pterconfig)
             # To add custom config here
 
     def readcommonconfig(self, paras, pt_config):
@@ -133,7 +158,8 @@ class Config(object):
     def getnameconfig(self):
         return {
             'BYR': self.byrconfig,
-            'TJU': self.tjuconfig
+            'TJU': self.tjuconfig,
+            'PTER': self.pterconfig
         }
 
     def switch(self, name):
