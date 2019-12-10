@@ -1,4 +1,5 @@
 import base64
+import traceback
 
 import magneturi
 
@@ -14,4 +15,4 @@ def get_torrent_hash40(data):
         b16Hash = str(b16Hash, "utf-8")
         return b16Hash
     except BaseException as e:
-        gl.get_value('logger').logger.error(e)
+        gl.get_value('logger').logger.exception(traceback.format_exc())

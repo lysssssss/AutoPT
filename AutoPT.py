@@ -2,6 +2,7 @@ import datetime
 import os
 import pickle
 import time
+import traceback
 from abc import abstractmethod, ABC
 from io import BytesIO
 from urllib.parse import unquote
@@ -82,7 +83,7 @@ class AutoPT(ABC):
                 return False
             self._save()
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
             exit(4)
             return False
         return True
@@ -132,7 +133,7 @@ class AutoPT(ABC):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
         n = 0
         try:
             # 防止网页获取失败时的异常
@@ -143,7 +144,7 @@ class AutoPT(ABC):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
 
     def get_url(self, url):
         """Return BeautifulSoup Pages
@@ -158,7 +159,7 @@ class AutoPT(ABC):
                 req = self._session.get(self._root + url, timeout=(30, 30))
                 return BeautifulSoup(req.text, 'lxml')
             except BaseException as e:
-                self.logger.error(e)
+                self.logger.exception(traceback.format_exc())
                 trytime -= 1
                 time.sleep(30)
 
@@ -192,7 +193,7 @@ class AutoPT(ABC):
                         self.logger.info('Download ' + page.name)
                         self.downloadtorrent(f, page, req_dl, thash)
             except BaseException as e:
-                self.logger.error(e)
+                self.logger.exception(traceback.format_exc())
         self.logger.info('Done')
 
     def downloadtorrent(self, f, page, req_dl, thash):
@@ -223,7 +224,7 @@ class AutoPT(ABC):
                 else:
                     self.logger.error('Download Error:')
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
 
     def getdownload(self, id_):
         """Download torrent in url
@@ -274,8 +275,7 @@ class AutoPT_Page(object):
         """
         self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
             self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched))
-        # 判断self.seeders > 0 因为没人做种时无法知道此种子的连接性如何, 等待有人做种
-        return self.size < 2048 and self.seeders > 0
+        return self.size < 2048
 
     def tosize(self, text):
         """Convert text 'xxxGB' to int size

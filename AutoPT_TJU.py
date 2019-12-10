@@ -1,5 +1,6 @@
 import datetime
 import time
+import traceback
 
 from bs4 import BeautifulSoup
 
@@ -33,7 +34,7 @@ class AutoPT_TJU(AutoPT):
                 return False
             self._save()
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
             exit(4)
             return False
         return True

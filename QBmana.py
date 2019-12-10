@@ -1,5 +1,6 @@
 import os
 import time
+import traceback
 from os.path import join, getsize
 
 import psutil
@@ -282,7 +283,7 @@ class QBAPI(object):
                 req = self._session.get(self._root + url, timeout=(30, 30))
                 return req
             except BaseException as e:
-                self.logger.error(e)
+                self.logger.exception(traceback.format_exc())
                 trytime -= 1
                 time.sleep(30)
 
@@ -298,7 +299,7 @@ class QBAPI(object):
                 req = self._session.post(self._root + url, files=data, timeout=(30, 30))
                 return req
             except BaseException as e:
-                self.logger.error(e)
+                self.logger.exception(traceback.format_exc())
                 trytime -= 1
                 time.sleep(30)
 
