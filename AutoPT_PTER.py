@@ -1,5 +1,5 @@
-import datetime
 import time
+import traceback
 from io import BytesIO
 
 from PIL import Image
@@ -51,7 +51,7 @@ class AutoPT_PTER(AutoPT):
                 return False
             self._save()
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
             exit(4)
             return False
         return True
@@ -61,6 +61,20 @@ class AutoPT_PTER(AutoPT):
             return (page.futherstamp - time.time() > 24 * 60 * 60) and page.seeders < 5
         else:
             return page.seeders < 5
+
+    def attendance(self, page):
+        try:
+            if page.find('tr', id='do-attendance') is not None:
+                self.logger.info('尝试签到...')
+                info = self.get_url('attendance-ajax.php')
+                if info.status_code == 200 and info.json()['status'] == '1':
+                    self.logger.info(info.json()['data'])
+                    self.logger.info(info.json()['message'])
+                    self.logger.info('签到成功')
+                else:
+                    self.logger.error('签到失败')
+        except BaseException as e:
+            self.logger.exception(traceback.format_exc())
 
     @property
     def pages(self):
@@ -72,50 +86,54 @@ class AutoPT_PTER(AutoPT):
         filterurl = 'torrents.php?'
         page = self.get_url(filterurl)
         self.logger.debug('Get pages Done')
+
+        # 自动签到
+        self.attendance(page)
+
         n = 0
         try:
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='sticky_top'):
                 if n == 0:
-                    yield (self.autoptpage(line))
+                    yield self.autoptpage(line)
                     n = 1
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
         n = 0
         try:
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='sticky_normal'):
                 if n == 0:
-                    yield (self.autoptpage(line))
+                    yield self.autoptpage(line)
                     n = 1
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
         n = 0
         try:
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='twoupfree_bg'):
                 if n == 0:
-                    yield (self.autoptpage(line))
+                    yield self.autoptpage(line)
                     n = 1
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
         n = 0
         try:
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='free_bg'):
                 if n == 0:
-                    yield (self.autoptpage(line))
+                    yield self.autoptpage(line)
                     n = 1
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.error(e)
+            self.logger.exception(traceback.format_exc())
 
 
 class AutoPT_Page_PTER(AutoPT_Page):
@@ -129,7 +147,7 @@ class AutoPT_Page_PTER(AutoPT_Page):
         try:
             # 注意，字符串中间这个不是空格
             if self.name.endswith('[email protected]'):
-                self.name = self.name[:len('[email protected]')*-1]
+                self.name = self.name[:len('[email protected]') * -1]
             self.lefttime = [tmp_span.text for tmp_span
                              in BeautifulSoup(str(soup.find(class_='torrentname')), 'lxml').find_all('span')
                              if self.matchlefttimestr(tmp_span.text)]
@@ -145,8 +163,6 @@ class AutoPT_Page_PTER(AutoPT_Page):
             self.futherstamp = -1
         pass
 
-
-
     @property
     def ok(self):
         """Check torrent info
@@ -154,5 +170,4 @@ class AutoPT_Page_PTER(AutoPT_Page):
         """
         self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
             self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
-        # 判断self.seeders > 0 因为没人做种时无法知道此种子的连接性如何, 等待有人做种
-        return self.size < 128 and self.seeders > 0
+        return self.size < 128
