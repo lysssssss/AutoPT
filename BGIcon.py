@@ -59,6 +59,7 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
     # “显示页面”选项的事件处理器
     def onShowLog(self, event):
         self.logger.debug('菜单显示 点击事件')
+        self.windowhandler.textctrl.ShowPosition(self.windowhandler.textctrl.GetLastPosition())
         self.windowhandler.Show()
         self.windowhandler.Raise()
         pass
