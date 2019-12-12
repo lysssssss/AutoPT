@@ -327,6 +327,7 @@ class QBAPI(object):
                     time.sleep(5)
                 if self.checktrackerhttps:
                     self.checktorrenttracker(thash)
+                self.resumetorrents(thash)
                 # else:
                 #     self.logger.eroor('获取种子hash失败')
             else:
@@ -367,6 +368,13 @@ class QBAPI(object):
             return listjs
         # qbt web访问失败
         exit(3)
+
+    def resumetorrents(self, thash):
+        info = self.get_url('/api/v2/torrents/resume?hashes=' + thash)
+        if info.status_code == 200:
+            self.logger.debug('resume torrents successfully')
+            return True
+
 
 
 if __name__ == '__main__':
