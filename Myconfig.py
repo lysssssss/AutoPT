@@ -71,6 +71,7 @@ class Config(object):
             # text = f.read()
             f.close()
             paras = json.loads(text)
+            self.readqbtconfig(paras)
             self.readlogconfig(paras)
             self.readbyrconfig(paras)
             self.readtjuconfig(paras)
@@ -154,6 +155,19 @@ class Config(object):
                 self._logsavetime = paras['LogSaveTime']
             else:
                 self._logsavetime = 7
+        else:
+            self._loglevel = 'info'
+            self._logsavetime = 7
+
+    def readqbtconfig(self, para):
+        if 'qbt' in para:
+            paras = para['qbt']
+            if 'path' in paras:
+                self._qbtpath = paras['path']
+            else:
+                self._qbtpath = ''
+        else:
+            self._qbtpath = ''
 
     def getnameconfig(self):
         return {
@@ -194,6 +208,10 @@ class Config(object):
 
     def intervaltime(self, name):
         return self.getnameconfig()[name.upper()]['intervaltime']
+
+    @property
+    def qbtpath(self):
+        return self._qbtpath
 
     @property
     def loglevel(self):

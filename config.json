@@ -1,4 +1,8 @@
 {
+  "qbt": {
+    "path": "C:\\Program Files\\qBittorrent\\qbittorrent.exe"
+    //qbittorrent.exe路径,若QB没有运行则会通过此路径运行,留空则不自动运行
+  },
   "log": {
     "LogLevel": "debug",
     //日志等级,可选info,debug 默认info

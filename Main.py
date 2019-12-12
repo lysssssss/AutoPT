@@ -1,6 +1,9 @@
+import os
 import time
 import traceback
 from threading import Thread
+
+import psutil
 
 import BGIcon
 import Myconfig
@@ -18,6 +21,7 @@ def run():
         auto_byr = None
         auto_tju = None
         auto_pter = None
+        Runqbittorrent()
 
         if gl.get_value('config').switch('byr'):
             auto_byr = AutoPT_BYR()
@@ -31,7 +35,6 @@ def run():
             auto_pter = AutoPT_PTER()
             maxtime *= gl.get_value('config').intervaltime('pter')
             pass
-
         counttime = 0
 
         while thread_flag:
@@ -53,6 +56,37 @@ def run():
         # traceback.print_exc(file=open('treace.txt', 'w+'))
 
 
+def CheckProgramStatus(name):
+    list = psutil.pids()
+    for i in range(0, len(list)):
+        p = psutil.Process(list[i])
+        if 'qbittorrent.exe' in p.name():
+            return True
+    return False
+
+
+def Runqbittorrent():
+    logger = gl.get_value('logger').logger
+    if gl.get_value('config').qbtpath != '':
+        try:
+            if not CheckProgramStatus('qbittorrent.exe'):
+                logger.debug('未检测到QBitTorrent打开，正在尝试打开')
+                os.startfile(gl.get_value('config').qbtpath)
+                trytime = 60
+                while trytime > 0 and (not CheckProgramStatus('qbittorrent.exe')):
+                    trytime -= 5
+                    logger.info('正在等待QBT启动')
+                    time.sleep(5)
+                if trytime <= 0:
+                    logger.error('QBT启动失败,异常退出')
+                else:
+                    logger.error('QBT启动成功')
+            else:
+                logger.debug('QBitTorrent已在运行')
+        except BaseException as e:
+            logger.exception(traceback.format_exc())
+
+
 if __name__ == '__main__':
     thread_flag = True
     gl._init()
@@ -60,9 +94,7 @@ if __name__ == '__main__':
     try:
         gl.set_value('config', Myconfig.Config())
         gl.set_value('logger', Mylogger.Mylogger())
-
         gl.set_value('thread', Thread(target=run))
-
         app = BGIcon.MyApp()
         gl.set_value('wxpython', app)
 
