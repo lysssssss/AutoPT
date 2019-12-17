@@ -64,14 +64,17 @@ class AutoPT_PTER(AutoPT):
 
     def attendance(self, page):
         try:
-            if page.find('tr', id='do-attendance') is not None:
+            if page.find('a', id='do-attendance') is not None:
                 self.logger.info('尝试签到...')
-                info = self.get_url('attendance-ajax.php')
-                if info.status_code == 200 and info.json()['status'] == '1':
+                info = self._session.get(self._root + 'attendance-ajax.php', timeout=(30, 30))
+                print(info.json())
+                if info.json()['status'] == '1':
                     self.logger.info(info.json()['data'])
                     self.logger.info(info.json()['message'])
                     self.logger.info('签到成功')
                 else:
+                    self.logger.warning(info.json()['data'])
+                    self.logger.warning(info.json()['message'])
                     self.logger.error('签到失败')
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
