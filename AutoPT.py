@@ -157,6 +157,7 @@ class AutoPT(ABC):
             self.random_agent()
             try:
                 req = self._session.get(self._root + url, timeout=(30, 30))
+                self.logger.debug('获取页面状态' + str(req.status_code))
                 return BeautifulSoup(req.text, 'lxml')
             except BaseException as e:
                 self.logger.exception(traceback.format_exc())
@@ -233,7 +234,7 @@ class AutoPT(ABC):
         """
         url = self._root + 'download.php?id=' + id_
         trytime = 0
-        req = self._session.get(url)
+        req = self._session.get(url, timeout=(30, 30))
         while trytime < 6:
 
             if req.status_code == 200:
@@ -243,7 +244,7 @@ class AutoPT(ABC):
                 # f.write(req.content)
                 break
             else:
-                req = self._session.get(url)
+                req = self._session.get(url, timeout=(30, 30))
                 trytime += 1
                 self.logger.error('Download Fail trytime = ' + str(trytime))
                 time.sleep(10)
