@@ -59,9 +59,13 @@ def run():
 def CheckProgramStatus(name):
     list = psutil.pids()
     for i in range(0, len(list)):
-        p = psutil.Process(list[i])
-        if 'qbittorrent.exe' in p.name():
-            return True
+        try:
+            p = psutil.Process(list[i])
+            if 'qbittorrent.exe' in p.name():
+                return True
+        except BaseException as e:
+            # 当某些进程不存在了会有异常，无视即可
+            pass
     return False
 
 
