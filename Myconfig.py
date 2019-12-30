@@ -14,13 +14,14 @@ class Config(object):
             return self.tjuconfig
         elif key.upper() == 'PTER':
             return self.pterconfig
+        elif key.upper() == 'MTEAM':
+            return self.mteamconfig
         return {}
 
     def __init__(self):
         self.byrconfig = {
             'switch': False,
             'checktrackerhttps': False,
-            'checkptmode': 1,
             'maincategory': '',
             'subcategory': [],
             'qbaddr': '',
@@ -36,7 +37,6 @@ class Config(object):
         self.tjuconfig = {
             'switch': False,
             'checktrackerhttps': False,
-            'checkptmode': 1,
             'maincategory': '',
             'subcategory': [],
             'qbaddr': '',
@@ -52,7 +52,6 @@ class Config(object):
         self.pterconfig = {
             'switch': False,
             'checktrackerhttps': False,
-            'checkptmode': 1,
             'maincategory': '',
             'subcategory': [],
             'qbaddr': '',
@@ -65,6 +64,21 @@ class Config(object):
             'keeptorrenttime': 0,
             'root': 'https://pterclub.com/'
         }
+        self.mteamconfig = {
+            'switch': False,
+            'checktrackerhttps': False,
+            'maincategory': '',
+            'subcategory': [],
+            'qbaddr': '',
+            'capacity': 0,
+            'capacityuint': 'GB',
+            'capacitynum': 0,
+            'dlroot': '',
+            'autoflag': False,
+            'intervaltime': 60,
+            'keeptorrenttime': 0,
+            'root': 'https://pt.m-team.cc/'
+        }
         if os.path.exists('config.json'):
             f = open('config.json', 'r', encoding='utf-8')
             text = jsmin(f.read())
@@ -76,6 +90,7 @@ class Config(object):
             self.readbyrconfig(paras)
             self.readtjuconfig(paras)
             self.readpterconfig(paras)
+            self.readmteamconfig(paras)
         else:
             self._logsavetime = 7
             self._loglevel = 'info'
@@ -108,6 +123,12 @@ class Config(object):
             self.readcommonconfig(paras, self.pterconfig)
             # To add custom config here
 
+    def readmteamconfig(self, param):
+        if 'MTEAM' in param:
+            paras = param['MTEAM']
+            self.readcommonconfig(paras, self.mteamconfig)
+            # To add custom config here
+
     def readcommonconfig(self, paras, pt_config):
         if 'switch' in paras:
             pt_config['switch'] = paras['switch']
@@ -130,8 +151,6 @@ class Config(object):
             pt_config['maincategory'] = paras['MainCategory'][0] if len(paras['MainCategory'][:1]) > 0 else ''
             pt_config['subcategory'] = paras['MainCategory'][1:]
             pt_config['subcategory'] = list(set(pt_config['subcategory']))
-        if 'CheckPTMode' in paras:
-            pt_config['checkptmode'] = paras['CheckPTMode'] if paras['CheckPTMode'] in [1, 2] else 1
         if 'KeepTorrentTime' in paras:
             pt_config['keeptorrenttime'] = paras['KeepTorrentTime'] if paras['KeepTorrentTime'] >= 0 else 0
 
@@ -173,7 +192,8 @@ class Config(object):
         return {
             'BYR': self.byrconfig,
             'TJU': self.tjuconfig,
-            'PTER': self.pterconfig
+            'PTER': self.pterconfig,
+            'MTEAM': self.mteamconfig
         }
 
     def switch(self, name):
@@ -184,9 +204,6 @@ class Config(object):
 
     def keeptorrenttime(self, name):
         return self.getnameconfig()[name.upper()]['keeptorrenttime']
-
-    def checkptmode(self, name):
-        return self.getnameconfig()[name.upper()]['checkptmode']
 
     def maincategory(self, name):
         return self.getnameconfig()[name.upper()]['maincategory']
@@ -224,5 +241,5 @@ class Config(object):
 
 if __name__ == '__main__':
     config = Config()
-    print(config['BYR'])
+    print(config['MTEAM'])
     pass

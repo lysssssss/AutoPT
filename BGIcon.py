@@ -133,7 +133,7 @@ class LoginFrame(wx.Dialog):
             self.textinput_captcha.SetValue('invalid')
 
         # 添加账号字段，并加入页面布局，为第四行，第一列
-        text = wx.StaticText(panel, label="用户名")
+        text = wx.StaticText(panel, label="二级验证")
         sizer.Add(text, pos=(3, 0), flag=wx.ALL, border=5)
 
         # 添加文本框字段，并加入页面布局，为第四行，第2,3列

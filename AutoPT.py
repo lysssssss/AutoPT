@@ -42,6 +42,7 @@ class AutoPT(ABC):
             with open(self.csvfilename, 'r', encoding='UTF-8') as f:
                 for line in f.readlines():
                     self.list.append(line.split(',')[0])
+        self.random_agent()
         self.logger.info('初始化成功，开始监听')
 
     def random_agent(self):
@@ -113,14 +114,7 @@ class AutoPT(ABC):
         """
         # free url
         self.logger.debug('Get pages')
-        filterclass = ''
-        filterurl = ''
-        if self.config['checkptmode'] == 1:
-            filterurl = 'torrents.php?'
-            filterclass = 'free_bg'
-        elif self.config['checkptmode'] == 2:
-            filterurl = 'torrents.php?spstate=2'
-            filterclass = 'free_bg'
+        filterurl = 'torrents.php?'
         page = self.get_url(filterurl)
         self.logger.debug('Get pages Done')
         n = 0
@@ -137,7 +131,7 @@ class AutoPT(ABC):
         n = 0
         try:
             # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_=filterclass):
+            for line in page.find_all('tr', class_='free_bg'):
                 if n == 0:
                     yield self.autoptpage(line)
                     n = 1
@@ -146,7 +140,7 @@ class AutoPT(ABC):
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
 
-    def get_url(self, url):
+    def get_url(self, url, randomagent=True):
         """Return BeautifulSoup Pages
         :url: page url
         :returns: BeautifulSoups
@@ -154,9 +148,10 @@ class AutoPT(ABC):
         # self.logger.debug('Get url: ' + url)
         trytime = 3
         while trytime > 0:
-            self.random_agent()
+            if randomagent:
+                self.random_agent()
             try:
-                req = self._session.get(self._root + url, timeout=(30, 30))
+                req = self._session.get(self._root + url, timeout=(30, 60))
                 self.logger.debug('获取页面状态' + str(req.status_code))
                 return BeautifulSoup(req.text, 'lxml')
             except BaseException as e:
@@ -234,20 +229,23 @@ class AutoPT(ABC):
         """
         url = self._root + 'download.php?id=' + id_
         trytime = 0
-        req = self._session.get(url, timeout=(30, 30))
-        while trytime < 6:
+        req = None
 
-            if req.status_code == 200:
-                # filename = req.headers['content-disposition']
-                # filename = unquote(filename[filename.find('name') + 5:])
-                # with open(self.config['dlroot'] + filename, 'wb') as f:
-                # f.write(req.content)
-                break
-            else:
-                req = self._session.get(url, timeout=(30, 30))
-                trytime += 1
-                self.logger.error('Download Fail trytime = ' + str(trytime))
-                time.sleep(10)
+        while trytime < 3:
+            req = self._session.get(url, timeout=(30, 60))
+            try:
+                if req.status_code == 200:
+                    # filename = req.headers['content-disposition']
+                    # filename = unquote(filename[filename.find('name') + 5:])
+                    # with open(self.config['dlroot'] + filename, 'wb') as f:
+                    # f.write(req.content)
+                    break
+                else:
+                    trytime += 1
+                    self.logger.error('Download Fail trytime = ' + str(trytime))
+                    time.sleep(10)
+            except BaseException as e:
+                self.logger.exception(traceback.format_exc())
         return req
 
 
@@ -310,9 +308,17 @@ class AutoPT_Page(object):
         if '天' in strt:
             futhertime += datetime.timedelta(days=int(strt[:strt.find('天')]))
             strt = strt[strt.find('天') + 1:]
+        # MT
+        if '日' in strt:
+            futhertime += datetime.timedelta(days=int(strt[:strt.find('日')]))
+            strt = strt[strt.find('日') + 1:]
         if '时' in strt:
             futhertime += datetime.timedelta(hours=int(strt[:strt.find('时')]))
             strt = strt[strt.find('时') + 1:]
+        # MT
+        if '時' in strt:
+            futhertime += datetime.timedelta(hours=int(strt[:strt.find('時')]))
+            strt = strt[strt.find('時') + 1:]
         if '分' in strt:
             futhertime += datetime.timedelta(minutes=int(strt[:strt.find('分')]))
             strt = strt[strt.find('分') + 1:]
@@ -323,4 +329,5 @@ class AutoPT_Page(object):
         return time.mktime(futhertime.timetuple())
 
     def matchlefttimestr(self, strt):
-        return '天' in strt or '时' in strt or '分' in strt or '秒' in strt or '月' in strt
+        return '天' in strt or '时' in strt or '分' in strt or '秒' in strt or '月' in strt \
+               or '日' in strt or '時' in strt

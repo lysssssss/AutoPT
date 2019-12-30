@@ -34,7 +34,8 @@
     "MainCategory": [
       "BYR",
       "TJU",
-      "PTER"
+      "PTER",
+      "MTeam"
     ],
     "KeepTorrentTime": 24,
     //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
@@ -50,9 +51,6 @@
     "IntervalTime": 60,
     //检查PT站的时间间隔,单位：秒 默认60秒
 
-    "CheckPTMode": 1,
-    //检查PT站点的方式，1为首页免费种子，2为免费页免费种子 默认1
-
     "Auto_management": true,
     //磁盘管理开关 默认false
     "QB_WebAddr": "127.0.0.1:8081",
@@ -67,7 +65,8 @@
     "MainCategory": [
       "TJU",
       "BYR",
-      "PTER"
+      "PTER",
+      "MTeam"
     ],
     "KeepTorrentTime": 24,
     //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
@@ -83,8 +82,36 @@
     "IntervalTime": 60,
     //检查PT站的时间间隔,单位：秒 默认60秒
 
-    "CheckPTMode": 1,
-    //检查PT站点的方式，1为首页免费种子，2为免费页免费种子 默认1
+    "Auto_management": true,
+    //磁盘管理开关 默认false
+    "QB_WebAddr": "127.0.0.1:8081",
+    //QB的网页管理地址
+    "CapacityNum": -1,
+    // 下载目录最大容量,容量不够时会自动删种 默认0且不开启磁盘管理,-1为根据磁盘剩余容量动态变化
+    "CapacityUint": "gb",
+    //容量单位,只能GB或TB,不区分大小写,始终以字节为单位 默认GB
+
+    //自动下载的种子会自动归类到第一个分类下,如需要接管其他分类,在数组里追加即可 默认未分类
+    //接管的分类必须与第一个分类处于同一个分区下,否则不接管
+    "MainCategory": [
+      "PTER",
+      "TJU",
+      "BYR",
+      "MTeam"
+    ],
+    "KeepTorrentTime": 24,
+    //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
+
+    "CheckTrackerHTTPS": true
+    //是否自动更新种子的tracker为https
+  },
+  "MTEAM": {
+    "switch": true,
+    //总开关
+    "torrent_download_root": "D:/tmp",
+    //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
+    "IntervalTime": 60,
+    //检查PT站的时间间隔,单位：秒 默认60秒
 
     "Auto_management": true,
     //磁盘管理开关 默认false
@@ -98,6 +125,7 @@
     //自动下载的种子会自动归类到第一个分类下,如需要接管其他分类,在数组里追加即可 默认未分类
     //接管的分类必须与第一个分类处于同一个分区下,否则不接管
     "MainCategory": [
+      "MTeam",
       "PTER",
       "TJU",
       "BYR"

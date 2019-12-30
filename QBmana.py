@@ -101,8 +101,8 @@ class QBAPI(object):
             info = self.get_url('/api/v2/torrents/delete?hashes=' + val[0] + '&deleteFiles=true')
             if info.status_code == 200:
                 self.logger.info('delete torrent success , torrent hash =' + str(val))
-                # 每一个文件删除1秒
-                time.sleep(filescount)
+                # 每一个文件删除0.333秒
+                time.sleep(filescount / 3)
                 # self.diskdelay(val[1])
             else:
                 ret = False
@@ -374,7 +374,6 @@ class QBAPI(object):
         if info.status_code == 200:
             self.logger.debug('resume torrents successfully')
             return True
-
 
 
 if __name__ == '__main__':

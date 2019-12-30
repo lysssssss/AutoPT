@@ -10,6 +10,7 @@ import Myconfig
 import Mylogger
 import globalvar as gl
 from AutoPT_BYR import AutoPT_BYR
+from AutoPT_MTEAM import AutoPT_MTEAM
 from AutoPT_PTER import AutoPT_PTER
 from AutoPT_TJU import AutoPT_TJU
 
@@ -21,6 +22,7 @@ def run():
         auto_byr = None
         auto_tju = None
         auto_pter = None
+        auto_mteam = None
         Runqbittorrent()
 
         if gl.get_value('config').switch('byr'):
@@ -35,11 +37,15 @@ def run():
             auto_pter = AutoPT_PTER()
             maxtime *= gl.get_value('config').intervaltime('pter')
             pass
+        if gl.get_value('config').switch('mteam'):
+            auto_mteam = AutoPT_MTEAM()
+            maxtime *= gl.get_value('config').intervaltime('mteam')
+            pass
         counttime = 0
 
         while thread_flag:
-            if auto_byr is not None and counttime % gl.get_value('config').intervaltime('byr') == 0:
-                auto_byr.start()
+            if auto_mteam is not None and counttime % gl.get_value('config').intervaltime('mteam') == 0:
+                auto_mteam.start()
                 pass
             if auto_tju is not None and counttime % gl.get_value('config').intervaltime('tju') == 0:
                 auto_tju.start()
@@ -47,6 +53,10 @@ def run():
             if auto_pter is not None and counttime % gl.get_value('config').intervaltime('pter') == 0:
                 auto_pter.start()
                 pass
+            if auto_byr is not None and counttime % gl.get_value('config').intervaltime('byr') == 0:
+                auto_byr.start()
+                pass
+
             counttime += 1
             if counttime >= maxtime:
                 counttime = 0
