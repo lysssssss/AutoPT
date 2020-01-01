@@ -216,17 +216,12 @@ class QBAPI(object):
         self.logger.debug('status code = ' + str(info.status_code))
         if info.status_code == 200:
             listjs = info.json()
-            tstate = listjs[0]['state']
-            self.logger.debug('torrent state:' + tstate)
-            # To be determined: stalledUP
-            if tstate in ['uploading', 'pausedUP', 'queuedUP', 'stalledUP', 'forcedUP', 'forceDL']:
+            if listjs[0]['completion_on'] != 4294967295:
                 return True
             else:
-                # error missingFiles checkingUP allocating metaDL checkingDL checkingResumeData moving unknown
                 return False
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
-        return False
 
     def gettorrentname(self, thash):
         info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
