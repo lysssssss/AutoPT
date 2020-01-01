@@ -43,7 +43,7 @@ def run():
             pass
         counttime = 0
 
-        while thread_flag:
+        while gl.get_value('thread_flag'):
             if auto_mteam is not None and counttime % gl.get_value('config').intervaltime('mteam') == 0:
                 auto_mteam.start()
                 pass
@@ -102,9 +102,8 @@ def Runqbittorrent():
 
 
 if __name__ == '__main__':
-    thread_flag = True
     gl._init()
-
+    gl.set_value('thread_flag', True)
     try:
         gl.set_value('config', Myconfig.Config())
         gl.set_value('logger', Mylogger.Mylogger())
@@ -119,4 +118,4 @@ if __name__ == '__main__':
     except BaseException:
         traceback.print_exc(file=open('treace.txt', 'w+'))
         # gl.get_value('logger').logger.exception(traceback.format_exc())
-    thread_flag = False
+    gl.set_value('thread_flag', False)
