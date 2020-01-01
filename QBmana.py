@@ -212,6 +212,23 @@ class QBAPI(object):
 
         return False
 
+    def istorrentdlcom(self, thash):
+        info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
+        self.logger.debug('status code = ' + str(info.status_code))
+        if info.status_code == 200:
+            listjs = info.json()
+            tstate = listjs[0]['state']
+            self.logger.debug('torrent state:' + tstate)
+            # To be determined: stalledUP
+            if tstate in ['uploading', 'pausedUP', 'queuedUP', 'stalledUP', 'forcedUP', 'forceDL']:
+                return True
+            else:
+                # error missingFiles checkingUP allocating metaDL checkingDL checkingResumeData moving unknown
+                return False
+        elif info.status_code == 404:
+            self.logger.error('Torrent hash was not found')
+        return False
+
     def gettorrentname(self, thash):
         info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
         self.logger.debug('status code = ' + str(info.status_code))
@@ -374,6 +391,12 @@ class QBAPI(object):
         if info.status_code == 200:
             self.logger.debug('resume torrents successfully')
             return True
+
+    def checktorrentdtanddd(self, thash):
+        ret = True
+        if not self.istorrentdlcom(thash):
+            ret = self.deletetorrent(thash)
+        return ret
 
 
 if __name__ == '__main__':

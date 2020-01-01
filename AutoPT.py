@@ -182,6 +182,7 @@ class AutoPT(ABC):
     def start(self):
         """Start spider"""
         self.logger.info('Start Spider [' + self.stationname + ']')
+        self.checktorrenttime()
         self._load()
         with open(self.csvfilename, 'a', encoding='UTF-8') as f:
             try:
@@ -278,7 +279,7 @@ class AutoPT(ABC):
                     newstr += line
                 else:
                     self.qbapi.checktorrentdtanddd(dline[2])
-                    self.logger.info('删除' + dline[2] + ',因为没有在免费时间内下载完毕')
+                    self.logger.info('删除' + dline[2] + ',' + dline[0] + '因为没有在免费时间内下载完毕')
             f.close()
         with open(self.recordtimefilename, 'w') as f:
             f.write(newstr)
