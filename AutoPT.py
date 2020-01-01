@@ -32,6 +32,7 @@ class AutoPT(ABC):
             'User-Agent': UserAgent().random
         }
         self.csvfilename = self.stationname + 'list.csv'
+        self.recordtimefilename = self.stationname + '_timerecord.csv'
         self.cookiefilename = self.stationname + '_cookie'
         self._root = self.config['root']
         self.list = []
@@ -132,6 +133,10 @@ class AutoPT(ABC):
                     n -= 1
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
+
+        if not gl.get_value('thread_flag'):
+            return
+
         n = 0
         try:
             # 防止网页获取失败时的异常
@@ -181,7 +186,9 @@ class AutoPT(ABC):
         with open(self.csvfilename, 'a', encoding='UTF-8') as f:
             try:
                 for page in self.pages:
-                    if page.id not in self.list and page.ok and gl.get_value('thread_flag'):
+                    if not gl.get_value('thread_flag'):
+                        continue
+                    if page.id not in self.list and page.ok:
                         # page.ok为硬性条件,不会变的状态添加到硬条件里
                         # 以下方法为软条件, 例如种子连接数, 类型, 剩余free时间等等属于变化的条件都为软条件
                         # 不符合条件的就不下载,直接添加到csv里
@@ -207,6 +214,7 @@ class AutoPT(ABC):
                     self.logger.info('Add ' + page.name)
                     self.qbapi.addtorrent(req_dl.content, thash, page.size)
                     self.pageinfotocsv(f, page)
+                    self.recordtorrenttime(page, thash)
                     self.list.append(page.id)
                     # 防反爬虫
                     time.sleep(3)
@@ -221,6 +229,7 @@ class AutoPT(ABC):
                     with open(self.config['dlroot'] + filename, 'wb') as fp:
                         fp.write(req_dl.content)
                     self.list.append(page.id)
+                    self.recordtorrenttime(page)
                     self.pageinfotocsv(f, page)
                     # 防反爬虫
                     time.sleep(3)
@@ -255,6 +264,26 @@ class AutoPT(ABC):
                 self.logger.exception(traceback.format_exc())
         return req
 
+    def recordtorrenttime(self, page, thash):
+        if page.futherstamp != -1:
+            with open(self.recordtimefilename, 'a') as f:
+                f.write(page.id + ',' + str(page.futherstamp) + ',' + thash + '\n')
+
+    def checktorrenttime(self):
+        newstr = ''
+        with open(self.recordtimefilename, 'r') as f:
+            for line in f.readlines():
+                dline = line.split(',')
+                if int(dline[1]) - time.time() > 600:
+                    newstr += line
+                else:
+                    self.qbapi.checktorrentdtanddd(dline[2])
+                    self.logger.info('删除' + dline[2] + ',因为没有在免费时间内下载完毕')
+            f.close()
+        with open(self.recordtimefilename, 'w') as f:
+            f.write(newstr)
+            f.close()
+
 
 class AutoPT_Page(object):
     """Torrent Page Info"""
@@ -273,6 +302,7 @@ class AutoPT_Page(object):
         self.leechers = int(soup.find_all('td')[-3].text.replace(',', ''))
         self.snatched = int(soup.find_all('td')[-2].text.replace(',', ''))
         self.id = parse_qs(urlparse(url).query)['id'][0]
+        self.futherstamp = -1
 
     @property
     def ok(self):

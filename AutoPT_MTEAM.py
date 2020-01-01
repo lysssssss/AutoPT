@@ -117,6 +117,9 @@ class AutoPT_MTEAM(AutoPT):
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
+        if not gl.get_value('thread_flag'):
+            return
+
         self.logger.debug('Get adult pages')
         filterurl = 'adult.php'
         pages = self.get_url(filterurl, False)
@@ -140,6 +143,9 @@ class AutoPT_MTEAM(AutoPT):
             self.logger.exception(traceback.format_exc())
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+        if not gl.get_value('thread_flag'):
+            return
 
         self.logger.debug('Get music pages')
         filterurl = 'music.php'

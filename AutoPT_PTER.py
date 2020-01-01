@@ -107,11 +107,10 @@ class AutoPT_PTER(AutoPT):
                     n -= 1
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
-        if not recheckpage:
-            self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
-        # 监测二次验证导致的登录问题
-        recheckpage = False
+        if not gl.get_value('thread_flag'):
+            return
+
         n = 0
         try:
             # 防止网页获取失败时的异常
@@ -124,11 +123,10 @@ class AutoPT_PTER(AutoPT):
                     n -= 1
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
-        if not recheckpage:
-            self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
-        # 监测二次验证导致的登录问题
-        recheckpage = False
+        if not gl.get_value('thread_flag'):
+            return
+
         n = 0
         try:
             # 防止网页获取失败时的异常
@@ -141,11 +139,10 @@ class AutoPT_PTER(AutoPT):
                     n -= 1
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
-        if not recheckpage:
-            self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
-        # 监测二次验证导致的登录问题
-        recheckpage = False
+        if not gl.get_value('thread_flag'):
+            return
+
         n = 0
         try:
             # 防止网页获取失败时的异常
@@ -160,7 +157,6 @@ class AutoPT_PTER(AutoPT):
             self.logger.exception(traceback.format_exc())
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-
 
 
 class AutoPT_Page_PTER(AutoPT_Page):

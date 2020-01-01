@@ -44,16 +44,20 @@ def run():
         counttime = 0
 
         while gl.get_value('thread_flag'):
-            if auto_mteam is not None and counttime % gl.get_value('config').intervaltime('mteam') == 0:
+            if gl.get_value('thread_flag') and auto_mteam is not None and counttime % gl.get_value(
+                    'config').intervaltime('mteam') == 0:
                 auto_mteam.start()
                 pass
-            if auto_tju is not None and counttime % gl.get_value('config').intervaltime('tju') == 0:
+            if gl.get_value('thread_flag') and auto_tju is not None and counttime % gl.get_value('config').intervaltime(
+                    'tju') == 0:
                 auto_tju.start()
                 pass
-            if auto_pter is not None and counttime % gl.get_value('config').intervaltime('pter') == 0:
+            if gl.get_value('thread_flag') and auto_pter is not None and counttime % gl.get_value(
+                    'config').intervaltime('pter') == 0:
                 auto_pter.start()
                 pass
-            if auto_byr is not None and counttime % gl.get_value('config').intervaltime('byr') == 0:
+            if gl.get_value('thread_flag') and auto_byr is not None and counttime % gl.get_value('config').intervaltime(
+                    'byr') == 0:
                 auto_byr.start()
                 pass
 
