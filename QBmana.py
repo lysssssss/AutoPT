@@ -241,7 +241,7 @@ class QBAPI(object):
         if info.status_code == 200:
             listjs = info.json()
             tracker = [val['url'] for val in listjs if val['status'] != 0]
-            self.logger.debug('tracker:' + '\n'.join(tracker))
+            # self.logger.debug('tracker:' + '\n'.join(tracker))
             return tracker
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
