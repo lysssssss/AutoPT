@@ -200,7 +200,6 @@ class QBAPI(object):
             listjs = info.json()
             tstate = listjs[0]['state']
             self.logger.debug('torrent state:' + tstate)
-            # To be determined: stalledUP
             if tstate in ['downloading', 'pausedDL', 'queuedDL', 'uploading', 'pausedUP', 'queuedUP', 'stalledUP',
                           'forcedUP', 'stalledDL', 'forceDL']:
                 return True
@@ -339,9 +338,13 @@ class QBAPI(object):
                 #     hash = info.json()[0]['hash']
                 self.settorrentcategory(thash)
 
-                # 防止磁盘卡死,当磁盘碎片太多时此处会卡几到几十分钟
+                # 防止磁盘卡死,当磁盘碎片太多或磁盘负载重时此处会卡几到几十分钟
                 while not self.gettorrentdlstatus(thash):
                     time.sleep(5)
+
+                # 删除匹配的tracker,暂时每个种子都判断不管是哪个站点
+                self.removematchtracker(thash, 'pttrackertju.tjupt.org')
+
                 if self.checktrackerhttps:
                     self.checktorrenttracker(thash)
                 self.resumetorrents(thash)
@@ -397,6 +400,25 @@ class QBAPI(object):
         if not self.istorrentdlcom(thash):
             ret = self.deletetorrent(thash)
         return ret
+
+    def removematchtracker(self, thash, trackerstr):
+        trackerlist = self.gettorrenttracker(thash)
+        for val in trackerlist:
+            if trackerstr in val:
+                self.removetorrenttracker(thash, val)
+
+    def removetorrenttracker(self, thash, url):
+        info = self.get_url('/api/v2/torrents/removeTrackers?hash=' + thash + '&urls=' + url)
+        if info.status_code == 200:
+            self.logger.debug('remove tracker successfully')
+            return True
+        elif info.status_code == 409:
+            self.logger.error('All urls were not found')
+        elif info.status_code == 404:
+            self.logger.error('Torrent hash was not found')
+        else:
+            self.logger.error('Unknow error')
+        return True
 
 
 if __name__ == '__main__':
