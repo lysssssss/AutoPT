@@ -117,11 +117,15 @@ class AutoPT(ABC):
         filterurl = 'torrents.php?'
         page = self.get_url(filterurl)
         self.logger.debug('Get pages Done')
+
+        # 监测二次验证导致的登录问题
+        recheckpage = False
         n = 0
         try:
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='twoupfree_bg'):
                 if n == 0:
+                    recheckpage = True
                     yield self.autoptpage(line)
                     n = 1
                 else:
@@ -133,12 +137,15 @@ class AutoPT(ABC):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='free_bg'):
                 if n == 0:
+                    recheckpage = True
                     yield self.autoptpage(line)
                     n = 1
                 else:
                     n -= 1
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
+        if not recheckpage:
+            self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
     def get_url(self, url, randomagent=True):
         """Return BeautifulSoup Pages

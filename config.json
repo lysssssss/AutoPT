@@ -10,7 +10,7 @@
     //日志最长保存时间,单位：天 默认7天
   },
   "BYR": {
-    "switch": true,
+    "switch": false,
     //总开关
     "torrent_download_root": "D:/tmp",
     //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！

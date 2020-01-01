@@ -62,7 +62,7 @@ class AutoPT_MTEAM(AutoPT):
 
     def judgetorrentok(self, page):
         if page.futherstamp != -1:
-            return (page.futherstamp - time.time() > 21 * 60 * 60) and page.seeders < 20
+            return (page.futherstamp - time.time() > 20 * 60 * 60) and page.seeders < 20
         else:
             return page.seeders < 20
 
@@ -99,10 +99,13 @@ class AutoPT_MTEAM(AutoPT):
         pages = self.get_url(filterurl, False)
         self.logger.debug('Get torrents pages Done')
         n = 1
+        # 监测二次验证导致的登录问题
+        recheckpage = False
         try:
             # 防止网页获取失败时的异常
             for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
                 if n == 0:
+                    recheckpage = True
                     # TODO 2倍种暂时未获取
                     if line.find('img', class_='pro_free') is not None:
                         yield self.autoptpage(line)
@@ -111,16 +114,22 @@ class AutoPT_MTEAM(AutoPT):
                     n -= 1
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
+        if not recheckpage:
+            self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
         self.logger.debug('Get adult pages')
         filterurl = 'adult.php'
         pages = self.get_url(filterurl, False)
         self.logger.debug('Get adult pages Done')
+
+        # 监测二次验证导致的登录问题
+        recheckpage = False
         n = 1
         try:
             # 防止网页获取失败时的异常
             for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
                 if n == 0:
+                    recheckpage = True
                     # TODO 2倍种暂时未获取
                     if line.find('img', class_='pro_free') is not None:
                         yield self.autoptpage(line)
@@ -129,16 +138,22 @@ class AutoPT_MTEAM(AutoPT):
                     n -= 1
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
+        if not recheckpage:
+            self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
         self.logger.debug('Get music pages')
         filterurl = 'music.php'
         pages = self.get_url(filterurl, False)
         self.logger.debug('Get music pages Done')
+
+        # 监测二次验证导致的登录问题
+        recheckpage = False
         n = 1
         try:
             # 防止网页获取失败时的异常
             for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
                 if n == 0:
+                    recheckpage = True
                     # TODO 2倍种暂时未获取
                     if line.find('img', class_='pro_free') is not None:
                         yield self.autoptpage(line)
@@ -147,6 +162,8 @@ class AutoPT_MTEAM(AutoPT):
                     n -= 1
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
+        if not recheckpage:
+            self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
 
 class AutoPT_Page_MTEAM(AutoPT_Page):
