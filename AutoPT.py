@@ -28,28 +28,34 @@ class AutoPT(ABC):
         self.app = gl.get_value('wxpython')
 
         self._session = requests.session()
-        self._session.headers = {
-            'User-Agent': UserAgent().random
-        }
         self.csvfilename = self.stationname + 'list.csv'
+        self.webagentfilename = self.stationname + '_webagent'
         self.recordtimefilename = self.stationname + '_timerecord.csv'
         self.cookiefilename = self.stationname + '_cookie'
         self._root = self.config['root']
         self.list = []
         self.autoptpage = AutoPT_Page
         self.qbapi = QBmana.QBAPI(self.config)
+        self.useragent = ''
+        if os.path.exists(self.webagentfilename):
+            with open(self.webagentfilename, 'r', encoding='UTF-8') as f:
+                for line in f.readlines():
+                    self.useragent = line
+                    break
+        else:
+            with open(self.webagentfilename, 'w', encoding='UTF-8') as f:
+                tmpagent = UserAgent().random
+                self.useragent = tmpagent
+                f.write(tmpagent)
+        self._session.headers = {
+            'User-Agent': self.useragent
+        }
         if os.path.exists(self.csvfilename):
             self.logger.debug('Read list.csv')
             with open(self.csvfilename, 'r', encoding='UTF-8') as f:
                 for line in f.readlines():
                     self.list.append(line.split(',')[0])
-        self.random_agent()
         self.logger.info('初始化成功，开始监听')
-
-    def random_agent(self):
-        self._session.headers = {
-            'User-Agent': UserAgent().random
-        }
 
     def login(self):
         try:
@@ -152,7 +158,7 @@ class AutoPT(ABC):
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
-    def get_url(self, url, randomagent=True):
+    def get_url(self, url):
         """Return BeautifulSoup Pages
         :url: page url
         :returns: BeautifulSoups
@@ -160,8 +166,6 @@ class AutoPT(ABC):
         # self.logger.debug('Get url: ' + url)
         trytime = 3
         while trytime > 0:
-            if randomagent:
-                self.random_agent()
             try:
                 req = self._session.get(self._root + url, timeout=(30, 60))
                 self.logger.debug('获取页面状态' + str(req.status_code))

@@ -14,6 +14,7 @@ test.py
 *.torrent
 *.html
 ttmp.dat
+*webagent
 # C extensions
 *.so
 

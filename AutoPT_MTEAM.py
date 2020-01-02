@@ -17,10 +17,6 @@ class AutoPT_MTEAM(AutoPT):
     def __init__(self):
         super(AutoPT_MTEAM, self).__init__('MTEAM')
         self.autoptpage = AutoPT_Page_MTEAM
-        self.constagnet = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.16 Safari/537.36 Edg/80.0.361.9'
-        self._session.headers = {
-            'User-Agent': self.constagnet
-        }
 
     def login(self):
         try:
@@ -36,7 +32,7 @@ class AutoPT_MTEAM(AutoPT):
                 # 'verify_code': gl.get_value('logindata')[1]['secondverify']
             }
             header = {
-                'User-Agent': self.constagnet,
+                'User-Agent': self.useragent,
                 'Referer': 'https://pt.m-team.cc/takelogin.php'
 
             }
@@ -96,7 +92,7 @@ class AutoPT_MTEAM(AutoPT):
         # free url
         self.logger.debug('Get torrents pages')
         filterurl = 'torrents.php'
-        pages = self.get_url(filterurl, False)
+        pages = self.get_url(filterurl)
         self.logger.debug('Get torrents pages Done')
         n = 1
         # 监测二次验证导致的登录问题
@@ -122,7 +118,7 @@ class AutoPT_MTEAM(AutoPT):
 
         self.logger.debug('Get adult pages')
         filterurl = 'adult.php'
-        pages = self.get_url(filterurl, False)
+        pages = self.get_url(filterurl)
         self.logger.debug('Get adult pages Done')
 
         # 监测二次验证导致的登录问题
@@ -149,7 +145,7 @@ class AutoPT_MTEAM(AutoPT):
 
         self.logger.debug('Get music pages')
         filterurl = 'music.php'
-        pages = self.get_url(filterurl, False)
+        pages = self.get_url(filterurl)
         self.logger.debug('Get music pages Done')
 
         # 监测二次验证导致的登录问题
