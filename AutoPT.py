@@ -230,7 +230,7 @@ class AutoPT(ABC):
                     with open(self.config['dlroot'] + filename, 'wb') as fp:
                         fp.write(req_dl.content)
                     self.list.append(page.id)
-                    self.recordtorrenttime(page)
+                    self.recordtorrenttime(page, thash)
                     self.pageinfotocsv(f, page)
                     # 防反爬虫
                     time.sleep(3)
@@ -275,8 +275,8 @@ class AutoPT(ABC):
         if os.path.exists(self.recordtimefilename):
             with open(self.recordtimefilename, 'r') as f:
                 for line in f.readlines():
-                    dline = line.split(',')
-                    if int(dline[1]) - time.time() > 600:
+                    dline = line.strip().split(',')
+                    if float(dline[1]) - time.time() > 600:
                         newstr += line
                     else:
                         self.qbapi.checktorrentdtanddd(dline[2])

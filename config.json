@@ -79,7 +79,7 @@
     //总开关
     "torrent_download_root": "D:/tmp",
     //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
-    "IntervalTime": 60,
+    "IntervalTime": 120,
     //检查PT站的时间间隔,单位：秒 默认60秒
 
     "Auto_management": true,
@@ -110,7 +110,7 @@
     //总开关
     "torrent_download_root": "D:/tmp",
     //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
-    "IntervalTime": 60,
+    "IntervalTime": 120,
     //检查PT站的时间间隔,单位：秒 默认60秒
 
     "Auto_management": true,
