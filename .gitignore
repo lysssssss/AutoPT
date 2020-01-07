@@ -15,6 +15,7 @@ test.py
 *.html
 ttmp.dat
 *webagent
+*.bat
 # C extensions
 *.so
 

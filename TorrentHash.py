@@ -1,5 +1,11 @@
+import base64
+import hashlib
 import traceback
+
+import bencode
 import libtorrent
+import magneturi
+
 import globalvar as gl
 
 
@@ -19,7 +25,21 @@ def get_torrent_hash40(data):
 
 
 if __name__ == '__main__':
+    print('oringin file')
+    print('libtorrent:' + str(libtorrent.torrent_info('123.torrent').info_hash()))
+    mangetlink = magneturi.from_torrent_data(open('123.torrent', 'rb').read())
+    mangetlink = mangetlink[mangetlink.find('btih') + 5:mangetlink.find('btih') + 5 + 32]
+    b16Hash = base64.b16encode(base64.b32decode(mangetlink))
+    b16Hash = b16Hash.lower()
+    b16Hash = str(b16Hash, "utf-8")
+    print('bencode:' + b16Hash)
 
-    with open('123.torrent', 'rb') as f:
-        aaa = f.read()
-        print(get_torrent_hash40(aaa))
+    print('update file')
+    print('libtorrent:' + str(libtorrent.torrent_info('new.torrent').info_hash()))
+    mangetlink = magneturi.from_torrent_data(open('new.torrent', 'rb').read())
+    mangetlink = mangetlink[mangetlink.find('btih') + 5:mangetlink.find('btih') + 5 + 32]
+    b16Hash = base64.b16encode(base64.b32decode(mangetlink))
+    b16Hash = b16Hash.lower()
+    b16Hash = str(b16Hash, "utf-8")
+    print('bencode:' + b16Hash)
+    torrent = open('123.torrent', 'rb').read()
