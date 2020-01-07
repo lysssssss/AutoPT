@@ -222,6 +222,7 @@ class QBAPI(object):
                 return False
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
+        return True
 
     def gettorrentname(self, thash):
         info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
@@ -393,7 +394,8 @@ class QBAPI(object):
     def checktorrentdtanddd(self, thash):
         ret = True
         if not self.istorrentdlcom(thash):
-            ret = self.deletetorrent(thash)
+            ret = False
+            self.deletetorrent(thash)
         return ret
 
     def removematchtracker(self, thash, trackerstr):

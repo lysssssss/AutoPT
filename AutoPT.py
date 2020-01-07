@@ -276,6 +276,7 @@ class AutoPT(ABC):
 
     def checktorrenttime(self):
         newstr = ''
+        updatefile = False
         if os.path.exists(self.recordtimefilename):
             with open(self.recordtimefilename, 'r') as f:
                 for line in f.readlines():
@@ -283,10 +284,15 @@ class AutoPT(ABC):
                     if float(dline[1]) - time.time() > 600:
                         newstr += line
                     else:
-                        self.qbapi.checktorrentdtanddd(dline[2])
-                        self.logger.info('删除' + dline[2] + ',' + dline[0] + '因为没有在免费时间内下载完毕')
-        with open(self.recordtimefilename, 'w') as f:
-            f.write(newstr)
+                        updatefile = True
+                        if not self.qbapi.checktorrentdtanddd(dline[2]):
+                            self.logger.info(self.stationname + ':删除' + dline[2] + ',' + dline[0] + '因为没有在免费时间内下载完毕')
+                        else:
+                            self.logger.info(self.stationname + ':种子' + dline[2] + ',' + dline[0] + '在免费时间前完成')
+        # 需要更新才写入
+        if updatefile:
+            with open(self.recordtimefilename, 'w') as f:
+                f.write(newstr)
 
 
 class AutoPT_Page(object):
