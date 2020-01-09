@@ -100,9 +100,10 @@ class QBAPI(object):
             filescount = self.gettorrentcontent(val[0])
             info = self.get_url('/api/v2/torrents/delete?hashes=' + val[0] + '&deleteFiles=true')
             if info.status_code == 200:
-                self.logger.info('delete torrent success , torrent hash =' + str(val))
+                self.logger.info('deleting')
                 # 每一个文件删除0.333秒
                 time.sleep(filescount / 3)
+                self.logger.info('delete torrent success , torrent hash =' + str(val))
                 # self.diskdelay(val[1])
             else:
                 ret = False
@@ -216,9 +217,10 @@ class QBAPI(object):
         self.logger.debug('status code = ' + str(info.status_code))
         if info.status_code == 200:
             listjs = info.json()
-            if listjs[0]['completion_on'] != 4294967295:
+            if len(listjs) == 0:
+                self.logger.debug('Cannot find torrent' + thash + '. Maybe already deleted')
                 return True
-            else:
+            if listjs[0]['completion_on'] == 4294967295:
                 return False
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
@@ -292,14 +294,14 @@ class QBAPI(object):
         trytime = 3
         while trytime > 0:
             try:
-                req = self._session.get(self._root + url, timeout=(30, 30))
+                req = self._session.get(self._root + url, timeout=(5, 30))
                 return req
             except BaseException as e:
                 self.logger.exception(traceback.format_exc())
                 trytime -= 1
-                time.sleep(30)
+                time.sleep(10)
 
-    def post_url(self, url, data):
+    def post_url(self, url, data=None, files=None):
         """Return BeautifulSoup Pages
         :url: page url
         :returns: BeautifulSoups
@@ -308,12 +310,12 @@ class QBAPI(object):
         trytime = 3
         while trytime > 0:
             try:
-                req = self._session.post(self._root + url, files=data, timeout=(30, 30))
+                req = self._session.post(self._root + url, files=files, data=data, timeout=(5, 30))
                 return req
             except BaseException as e:
                 self.logger.exception(traceback.format_exc())
                 trytime -= 1
-                time.sleep(30)
+                time.sleep(10)
 
     def addtorrent(self, content, thash, tsize):
         data = {'torrents': content}
@@ -322,7 +324,12 @@ class QBAPI(object):
             # 分配空间失败
             if not self.checksize(tsize):
                 return
-            info = self.post_url('/api/v2/torrents/add', data)
+            info = self.post_url('/api/v2/torrents/add', files={'torrents': content}, data={
+                'pause': True,
+                'category': self.maincategory,
+                'autoTMM': True,
+
+            })
             self.logger.debug('addtorrent status code = ' + str(info.status_code))
 
             if info.status_code == 200:
@@ -332,7 +339,7 @@ class QBAPI(object):
                 #
                 # if info.status_code == 200:
                 #     hash = info.json()[0]['hash']
-                self.settorrentcategory(thash)
+                # self.settorrentcategory(thash)
 
                 # 防止磁盘卡死,当磁盘碎片太多或磁盘负载重时此处会卡几到几十分钟
                 while not self.gettorrentdlstatus(thash):
@@ -346,6 +353,8 @@ class QBAPI(object):
                 self.resumetorrents(thash)
                 # else:
                 #     self.logger.eroor('获取种子hash失败')
+            elif info.status_code == 415:
+                self.logger.error('Torrent file is not valid')
             else:
                 self.logger.error('addtorrent Error status code = ' + str(info.status_code))
         else:
