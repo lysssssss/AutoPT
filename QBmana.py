@@ -96,9 +96,11 @@ class QBAPI(object):
 
     def deletetorrent(self, stlist):
         ret = True
+        if isinstance(stlist, str):
+            stlist = [stlist]
         for val in stlist:
-            filescount = self.gettorrentcontent(val[0])
-            info = self.get_url('/api/v2/torrents/delete?hashes=' + val[0] + '&deleteFiles=true')
+            filescount = self.gettorrentcontent(val)
+            info = self.get_url('/api/v2/torrents/delete?hashes=' + val+ '&deleteFiles=true')
             if info.status_code == 200:
                 self.logger.info('deleting')
                 # 每一个文件删除0.333秒
@@ -138,7 +140,7 @@ class QBAPI(object):
             infinte_lastactivity.sort(key=lambda x: x['added_on'])
             # print (infinte_lastactivity)
             for val in infinte_lastactivity:
-                d_list.append([val['hash'], val['size'] / 1024 / 1024 / 1024])
+                d_list.append(val['hash'])
                 deletesize -= val['size'] / 1024 / 1024 / 1024
                 self.logger.info(
                     'select torrent name:\"' + val['name'] + '\"  size=' + str(val['size'] / 1024 / 1024 / 1024) + 'GB')
@@ -152,7 +154,7 @@ class QBAPI(object):
                                   now - val['added_on'] > self.config['keeptorrenttime'] * 60 * 60]
             other_lastactivity.sort(key=lambda x: x['last_activity'])
             for val in other_lastactivity:
-                d_list.append([val['hash'], val['size'] / 1024 / 1024 / 1024])
+                d_list.append(val['hash'])
                 deletesize -= val['size'] / 1024 / 1024 / 1024
                 self.logger.info(
                     'select torrent name:\"' + val['name'] + '\"  size=' + str(val['size'] / 1024 / 1024 / 1024) + 'GB')
