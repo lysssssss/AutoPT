@@ -58,7 +58,7 @@ class AutoPT_MTEAM(AutoPT):
 
     def judgetorrentok(self, page):
         if page.futherstamp != -1:
-            return (page.futherstamp - time.time() > 20 * 60 * 60) and page.seeders < 20
+            return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
         else:
             return page.seeders < 20
 

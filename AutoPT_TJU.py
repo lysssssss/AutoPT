@@ -42,9 +42,9 @@ class AutoPT_TJU(AutoPT):
     def judgetorrentok(self, page):
         if page.futherstamp != -1:
             if page.size < 32:
-                return (page.futherstamp - time.time() > 23 * 60 * 60) and page.seeders < 13
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
             else:
-                return page.ipv6 == 'conn-yes' and (page.futherstamp - time.time() > 24 * 60 * 60) and page.seeders < 13
+                return page.ipv6 == 'conn-yes' and (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
         else:
             if page.size < 32:
                 return page.seeders < 13

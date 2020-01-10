@@ -176,7 +176,7 @@ class AutoPT(ABC):
                 time.sleep(30)
 
     def pageinfotocsv(self, f, page):
-        f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,' + '\n')
+        f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,' + page.lefttime + '\n')
 
     # 纯虚函数,子类必须实现软条件
     @abstractmethod
@@ -313,6 +313,7 @@ class AutoPT_Page(object):
         self.snatched = int(soup.find_all('td')[-2].text.replace(',', ''))
         self.id = parse_qs(urlparse(url).query)['id'][0]
         self.futherstamp = -1
+        self.lefttime = ''
 
     @property
     def ok(self):
@@ -320,7 +321,7 @@ class AutoPT_Page(object):
         :returns: If a torrent are ok to be downloaded
         """
         self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
-            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched))
+            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
         return self.size < 2048
 
     def tosize(self, text):
