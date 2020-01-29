@@ -1,17 +1,14 @@
 import time
 import traceback
-from io import BytesIO
 from urllib.parse import parse_qs, urlparse
 
-from PIL import Image
 from bs4 import BeautifulSoup
-from fake_useragent import UserAgent
 
-import globalvar as gl
-from AutoPT import AutoPT, AutoPT_Page
+import tools.globalvar as gl
+from autopt import AutoPT
 
 
-class AutoPT_MTEAM(AutoPT):
+class AutoPT_MTEAM(AutoPT.AutoPT):
     """login/logout/getpage"""
 
     def __init__(self):
@@ -43,7 +40,7 @@ class AutoPT_MTEAM(AutoPT):
                     'otp': gl.get_value('logindata')[1]['secondverify']
                 }
                 sec_page = self._session.post(
-                    self._root + 'verify.php', login_data, timeout=(30, 30))
+                    self._root + 'verify.php', login_data, headers=self.headers, timeout=(30, 30))
                 if sec_page.url != self._root + 'index.php':
                     self.logger.error('Login error')
                     return False
@@ -58,9 +55,9 @@ class AutoPT_MTEAM(AutoPT):
 
     def judgetorrentok(self, page):
         if page.futherstamp != -1:
-            return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
+            return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 200
         else:
-            return page.seeders < 20
+            return page.seeders < 200
 
     def getdownload(self, id_):
         """Download torrent in url
@@ -72,7 +69,7 @@ class AutoPT_MTEAM(AutoPT):
         req = None
         while trytime < 3:
             try:
-                req = self._session.get(url, timeout=(30, 60))
+                req = self._session.get(url, headers=self.headers, timeout=(30, 60))
                 if req.status_code == 200:
                     break
                 else:
@@ -81,6 +78,7 @@ class AutoPT_MTEAM(AutoPT):
                     time.sleep(10)
 
             except BaseException as e:
+                self.logger.error('Download Fail trytime = ' + str(trytime))
                 self.logger.exception(traceback.format_exc())
         return req
 
@@ -167,8 +165,38 @@ class AutoPT_MTEAM(AutoPT):
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
+    def getdownloadbypsk(self, id_):
+        """Download torrent in url
+        :url: url
+        :filename: torrent
+        """
+        if isinstance(id_, int):
+            id_ = str(id_)
+        url = self._root + 'download.php?id=' + id_ + '&passkey=' + self.psk + '&ipv6=1&https=1'
+        trytime = 0
+        req = None
 
-class AutoPT_Page_MTEAM(AutoPT_Page):
+        while trytime < 3:
+
+            try:
+                req = self._session.get(url, timeout=(10, 60))
+                if req.status_code == 200:
+                    return req, True
+                elif req.status_code == 404:
+                    # MT 该种子不存在
+                    return req, False
+                else:
+                    trytime += 1
+                    self.logger.error('Download Fail trytime = ' + str(trytime))
+                    time.sleep(3)
+            except BaseException as e:
+                self.logger.error('Download Fail trytime = ' + str(trytime))
+                trytime += 1
+                self.logger.exception(traceback.format_exc())
+        return req, False
+
+
+class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
     """Torrent Page Info"""
 
     def __init__(self, soup):
@@ -179,6 +207,8 @@ class AutoPT_Page_MTEAM(AutoPT_Page):
         self.url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
         self.type = soup.img['title']
+        self.createtime = soup.find_all('td')[-7].text
+        self.createtimestamp = self.totimestamp(self.createtime)
         self.size = self.tosize(soup.find_all('td')[-6].text)
         self.seeders = int(soup.find_all('td')[-5].text.replace(',', ''))
         self.leechers = int(soup.find_all('td')[-4].text.replace(',', ''))
@@ -208,6 +238,7 @@ class AutoPT_Page_MTEAM(AutoPT_Page):
         """Check torrent info
         :returns: If a torrent are ok to be downloaded
         """
-        self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
-            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
-        return self.size < 128
+        self.logger.info(
+            self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
+                self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
+        return self.size < 256

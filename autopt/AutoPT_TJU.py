@@ -1,14 +1,13 @@
-import datetime
 import time
 import traceback
 
 from bs4 import BeautifulSoup
 
-import globalvar as gl
-from AutoPT import AutoPT, AutoPT_Page
+import tools.globalvar as gl
+from autopt import AutoPT
 
 
-class AutoPT_TJU(AutoPT):
+class AutoPT_TJU(AutoPT.AutoPT):
     """login/logout/getpage"""
 
     def __init__(self):
@@ -28,7 +27,7 @@ class AutoPT_TJU(AutoPT):
                 'logout': 'forever',
             }
             main_page = self._session.post(
-                self._root + 'takelogin.php', login_data)
+                self._root + 'takelogin.php', login_data, headers=self.headers)
             if main_page.url != self._root + 'index.php':
                 self.logger.error('Login error')
                 return False
@@ -52,7 +51,7 @@ class AutoPT_TJU(AutoPT):
                 return page.ipv6 == 'conn-yes' and page.seeders < 13
 
 
-class AutoPT_Page_TJU(AutoPT_Page):
+class AutoPT_Page_TJU(AutoPT.AutoPT_Page):
     """Torrent Page Info"""
 
     def __init__(self, soup):
@@ -87,7 +86,8 @@ class AutoPT_Page_TJU(AutoPT_Page):
         """Check torrent info
         :returns: If a torrent are ok to be downloaded
         """
-        self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
-            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
+        self.logger.info(
+            self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
+                self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
         # 判断self.seeders > 0 因为没人做种时无法知道此种子的连接性如何, 等待有人做种
         return self.size < 256 and self.seeders > 0

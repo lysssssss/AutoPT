@@ -1,7 +1,7 @@
 import logging
 from logging import handlers
 
-import globalvar as gl
+import tools.globalvar as gl
 
 
 class LogginRedirectHandler(logging.Handler):
@@ -23,12 +23,13 @@ class Mylogger(object):
         self._logger = logging.getLogger("AutoPT")
 
         console = logging.StreamHandler()
-        # console.setLevel(logging.DEBUG)
+        console.setLevel(logging.DEBUG)
         console.setFormatter(formatter)
 
-        th = handlers.TimedRotatingFileHandler(filename='Run.log', when='midnight',
+        th = handlers.TimedRotatingFileHandler(filename='log/Run.log', when='midnight',
                                                backupCount=gl.get_value('config').logsavetime,
                                                encoding='utf-8')  # 往文件里写入#指定间隔时间自动生成文件的处理器
+        th.setLevel(logging.DEBUG)
         # 实例化TimedRotatingFileHandler
         # interval是时间间隔，backupCount是备份文件的个数，如果超过这个个数，就会自动删除，when是间隔的时间单位，单位有以下几种：
         # S 秒
@@ -41,15 +42,15 @@ class Mylogger(object):
 
         self.loggingRedirectHandler = LogginRedirectHandler()
         self.loggingRedirectHandler.setFormatter(formatter)
+        if gl.get_value('config').loglevel == 'info':
+            self.loggingRedirectHandler.setLevel(logging.INFO)
+        else:
+            self.loggingRedirectHandler.setLevel(logging.DEBUG)
 
         self._logger.addHandler(th)
         self._logger.addHandler(console)
         self._logger.addHandler(self.loggingRedirectHandler)
-
-        if gl.get_value('config').loglevel == 'info':
-            self._logger.setLevel(logging.INFO)
-        else:
-            self._logger.setLevel(logging.DEBUG)
+        self._logger.setLevel(logging.DEBUG)
 
     @property
     def logger(self):

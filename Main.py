@@ -4,15 +4,14 @@ import traceback
 from threading import Thread
 
 import psutil
+from autopt.AutoPT_BYR import AutoPT_BYR
+from autopt.AutoPT_MTEAM import AutoPT_MTEAM
+from autopt.AutoPT_PTER import AutoPT_PTER
+from autopt.AutoPT_TJU import AutoPT_TJU
+from autopt.QBmanage_Reseed import Manager
 
-import BGIcon
-import Myconfig
-import Mylogger
-import globalvar as gl
-from AutoPT_BYR import AutoPT_BYR
-from AutoPT_MTEAM import AutoPT_MTEAM
-from AutoPT_PTER import AutoPT_PTER
-from AutoPT_TJU import AutoPT_TJU
+from tools import Myconfig, Mylogger, BGIcon
+from tools import globalvar as gl
 
 
 def run():
@@ -23,47 +22,76 @@ def run():
         auto_tju = None
         auto_pter = None
         auto_mteam = None
+
         Runqbittorrent()
 
+        refconfig = {
+            'name': 'reseed',
+            'ref': {
+                'byr': auto_byr,
+                'tju': auto_tju,
+                'mteam': auto_mteam,
+                'pter': auto_pter
+            }
+        }
+        gl.set_value('allref', refconfig)
+        auto_byr = AutoPT_BYR()
+        refconfig['ref']['byr'] = auto_byr
+        auto_tju = AutoPT_TJU()
+        refconfig['ref']['tju'] = auto_tju
+        auto_pter = AutoPT_PTER()
+        refconfig['ref']['pter'] = auto_pter
+        auto_mteam = AutoPT_MTEAM()
+        refconfig['ref']['mteam'] = auto_mteam
+
         if gl.get_value('config').switch('byr'):
-            auto_byr = AutoPT_BYR()
-            maxtime *= gl.get_value('config').intervaltime('byr')
+            # auto_byr = AutoPT_BYR()
+            if maxtime % gl.get_value('config').intervaltime('byr') != 0:
+                maxtime *= gl.get_value('config').intervaltime('byr')
 
         if gl.get_value('config').switch('tju'):
-            auto_tju = AutoPT_TJU()
-            maxtime *= gl.get_value('config').intervaltime('tju')
-            pass
+            # auto_tju = AutoPT_TJU()
+            if maxtime % gl.get_value('config').intervaltime('tju') != 0:
+                maxtime *= gl.get_value('config').intervaltime('tju')
         if gl.get_value('config').switch('pter'):
-            auto_pter = AutoPT_PTER()
-            maxtime *= gl.get_value('config').intervaltime('pter')
-            pass
+            # auto_pter = AutoPT_PTER()
+            if maxtime % gl.get_value('config').intervaltime('pter') != 0:
+                maxtime *= gl.get_value('config').intervaltime('pter')
         if gl.get_value('config').switch('mteam'):
-            auto_mteam = AutoPT_MTEAM()
-            maxtime *= gl.get_value('config').intervaltime('mteam')
-            pass
+            # auto_mteam = AutoPT_MTEAM()
+            if maxtime % gl.get_value('config').intervaltime('mteam') != 0:
+                maxtime *= gl.get_value('config').intervaltime('mteam')
         counttime = 0
 
+        manager = Manager()
+        if maxtime % (6 * 3600) != 0:
+            maxtime *= (6 * 3600)
+
         while gl.get_value('thread_flag'):
-            if gl.get_value('thread_flag') and auto_mteam is not None and counttime % gl.get_value(
+            if gl.get_value('config').switch('reseed') and counttime % 300 == 0:
+                manager.recheck()
+            if gl.get_value('config').switch('reseed') and counttime % (6 * 3600) == 0:
+                manager.recheckall()
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('mteam') and counttime % gl.get_value(
                     'config').intervaltime('mteam') == 0:
                 auto_mteam.start()
                 pass
-            if gl.get_value('thread_flag') and auto_tju is not None and counttime % gl.get_value('config').intervaltime(
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('tju') and counttime % gl.get_value(
+                    'config').intervaltime(
                     'tju') == 0:
                 auto_tju.start()
                 pass
-            if gl.get_value('thread_flag') and auto_pter is not None and counttime % gl.get_value(
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('pter') and counttime % gl.get_value(
                     'config').intervaltime('pter') == 0:
                 auto_pter.start()
                 pass
-            if gl.get_value('thread_flag') and auto_byr is not None and counttime % gl.get_value('config').intervaltime(
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('byr') and counttime % gl.get_value(
+                    'config').intervaltime(
                     'byr') == 0:
                 auto_byr.start()
                 pass
 
-            counttime += 1
-            if counttime >= maxtime:
-                counttime = 0
+            counttime = (1 + counttime) % maxtime
             time.sleep(1)
     except BaseException:
         logger.exception(traceback.format_exc())
@@ -112,7 +140,7 @@ if __name__ == '__main__':
         gl.set_value('config', Myconfig.Config())
         gl.set_value('logger', Mylogger.Mylogger())
         gl.set_value('thread', Thread(target=run))
-        app = BGIcon.MyApp()
+        app = BGIcon.MyWindows()
         gl.set_value('wxpython', app)
 
         gl.get_value('logger').logger.info('程序启动')

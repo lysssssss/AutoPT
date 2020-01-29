@@ -5,10 +5,10 @@ Author: LYS
 Create: 2019年11月13日
 """
 
-from AutoPT import AutoPT, AutoPT_Page
+from autopt import AutoPT
 
 
-class AutoPT_BYR(AutoPT):
+class AutoPT_BYR(AutoPT.AutoPT):
     """login/logout/getpage"""
 
     def __init__(self):
@@ -19,11 +19,11 @@ class AutoPT_BYR(AutoPT):
         return True
 
 
-class AutoPT_Page_BYR(AutoPT_Page):
+class AutoPT_Page_BYR(AutoPT.AutoPT_Page):
     """Torrent Page Info"""
 
     def __init__(self, soup):
         """Init variables
         :soup: Soup
         """
-        AutoPT_Page.__init__(self, soup)
+        AutoPT.AutoPT_Page.__init__(self, soup)

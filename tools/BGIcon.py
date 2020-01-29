@@ -4,9 +4,7 @@ import wx
 import wx.adv
 from pubsub import pub
 
-import Myconfig
-import Mylogger
-import globalvar as gl
+import tools.globalvar as gl
 
 
 # class ClockWindow(wx.Window):
@@ -46,10 +44,11 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
     # “关于”选项的事件处理器
     def onAbout(self, event):
         self.logger.debug('菜单关于 点击事件')
-        wx.MessageBox('程序作者：LYS\n最后更新日期：2020年1月7日\nGitHub：https://github.com/lysssssss/AutoPT', "关于")
+        wx.MessageBox('程序作者：LYS\n最后更新日期：2020年1月30日\nGitHub：https://github.com/lysssssss/AutoPT', "关于")
 
     # “退出”选项的事件处理器
     def onExit(self, event):
+        self.SetIcon(wx.Icon(self.ICON), '正在退出...稍等1-2分钟')  # 设置图标和标题
         self.windowhandler.Hide()
         self.logger.debug('菜单退出 点击事件')
         # 退出时记得把logger的句柄移除，否则永远卡死在handler的emit里
@@ -204,7 +203,7 @@ class MyFrame(wx.Frame):
         self.Hide()
 
 
-class MyApp(wx.App):
+class MyWindows(wx.App):
     def __init__(self, redirect=False, filename=None):
         # redirect = True if gl.get_value('config').loglevel == 'debug' else False
         self.frame = None
@@ -220,7 +219,7 @@ class MyApp(wx.App):
         self.TaskBar = MyTaskBarIcon(self.frame)  # 显示系统托盘图标
         # self.timer = ClockWindow()
         gl.set_value('logwindow', self)
-        #self.SetTopWindow(self.frame)
+        # self.SetTopWindow(self.frame)
         self.frame.Show()
         self.frame.Raise()
         wx.CallLater(1000, self.checkptthread)
@@ -273,11 +272,3 @@ class MyApp(wx.App):
         while not self.loginflag[0]:
             pass
         pass
-
-
-if __name__ == "__main__":
-    gl._init()
-    gl.set_value('config', Myconfig.Config())
-    gl.set_value('logger', Mylogger.Mylogger())
-    app = MyApp()
-    app.MainLoop()

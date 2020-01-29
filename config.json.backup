@@ -1,29 +1,27 @@
 {
-  "qbt": {
+  "QBitTorrent": {
+    "url": "127.0.0.1:8081",
     "path": "C:\\Program Files\\qBittorrent\\qbittorrent.exe"
     //qbittorrent.exe路径,若QB没有运行则会通过此路径运行,留空则不自动运行
   },
   "log": {
-    "LogLevel": "debug",
+    "LogLevel": "info",
     //日志等级,可选info,debug 默认info
     "LogSaveTime": 5
     //日志最长保存时间,单位：天 默认7天
   },
+  "ReSeed": {
+    "switch": false,
+    "token":"",
+    //IYUU辅种接口 申请地址https://iyuu.cn/
+  },
   "BYR": {
     "switch": false,
     //总开关
-    "torrent_download_root": "D:/tmp",
-    //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
-    "IntervalTime": 60,
-    //检查PT站的时间间隔,单位：秒 默认60秒
-
-    "CheckPTMode": 1,
-    //检查PT站点的方式，1为首页免费种子，2为免费页免费种子 默认1
-
-    "Auto_management": true,
-    //磁盘管理开关 默认false
-    "QB_WebAddr": "127.0.0.1:8081",
-    //QB的网页管理地址
+    "IntervalTime": 10,
+    //检查PT站的时间间隔,单位：分钟 默认10分钟
+    "passkey": "",
+    //站点passkey，用于辅种功能
     "CapacityNum": -1,
     // 下载目录最大容量,容量不够时会自动删种 默认0且不开启磁盘管理,-1为根据磁盘剩余容量动态变化
     "CapacityUint": "gb",
@@ -37,24 +35,17 @@
       "PTER",
       "MTeam"
     ],
-    "KeepTorrentTime": 24,
+    "KeepTorrentTime": 24
     //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
 
-    "CheckTrackerHTTPS": true
-    //是否自动更新种子的tracker为https
   },
   "TJU": {
-    "switch": true,
+    "switch": false,
     //总开关
-    "torrent_download_root": "D:/tmp",
-    //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
-    "IntervalTime": 60,
-    //检查PT站的时间间隔,单位：秒 默认60秒
-
-    "Auto_management": true,
-    //磁盘管理开关 默认false
-    "QB_WebAddr": "127.0.0.1:8081",
-    //QB的网页管理地址
+    "IntervalTime": 10,
+    //检查PT站的时间间隔,单位：分钟 默认10分钟
+    "passkey": "",
+    //站点passkey，用于辅种功能
     "CapacityNum": -1,
     // 下载目录最大容量,容量不够时会自动删种 默认0且不开启磁盘管理,-1为根据磁盘剩余容量动态变化
     "CapacityUint": "gb",
@@ -68,24 +59,17 @@
       "PTER",
       "MTeam"
     ],
-    "KeepTorrentTime": 24,
+    "KeepTorrentTime": 24
     //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
 
-    "CheckTrackerHTTPS": false
-    //是否自动更新种子的tracker为https
   },
   "PTER": {
-    "switch": true,
+    "switch": false,
     //总开关
-    "torrent_download_root": "D:/tmp",
-    //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
-    "IntervalTime": 120,
-    //检查PT站的时间间隔,单位：秒 默认60秒
-
-    "Auto_management": true,
-    //磁盘管理开关 默认false
-    "QB_WebAddr": "127.0.0.1:8081",
-    //QB的网页管理地址
+    "IntervalTime": 10,
+    //检查PT站的时间间隔,单位：分钟 默认10分钟
+    "passkey": "",
+    //站点passkey，用于辅种功能
     "CapacityNum": -1,
     // 下载目录最大容量,容量不够时会自动删种 默认0且不开启磁盘管理,-1为根据磁盘剩余容量动态变化
     "CapacityUint": "gb",
@@ -99,24 +83,16 @@
       "BYR",
       "MTeam"
     ],
-    "KeepTorrentTime": 24,
+    "KeepTorrentTime": 24
     //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
-
-    "CheckTrackerHTTPS": true
-    //是否自动更新种子的tracker为https
   },
   "MTEAM": {
-    "switch": true,
+    "switch": false,
     //总开关
-    "torrent_download_root": "D:/tmp",
-    //(磁盘管理打开时此项失效)种子下载目录,确保路径目录存在！！！
-    "IntervalTime": 120,
-    //检查PT站的时间间隔,单位：秒 默认60秒
-
-    "Auto_management": true,
-    //磁盘管理开关 默认false
-    "QB_WebAddr": "127.0.0.1:8081",
-    //QB的网页管理地址
+    "IntervalTime": 10,
+    //检查PT站的时间间隔,单位：分钟 默认10分钟
+    "passkey": "",
+    //站点passkey，用于辅种功能
     "CapacityNum": -1,
     // 下载目录最大容量,容量不够时会自动删种 默认0且不开启磁盘管理,-1为根据磁盘剩余容量动态变化
     "CapacityUint": "gb",
@@ -130,10 +106,7 @@
       "TJU",
       "BYR"
     ],
-    "KeepTorrentTime": 24,
+    "KeepTorrentTime": 24
     //种子多久时间内不会被删除,自添加开始计算,默认0,单位:小时
-
-    "CheckTrackerHTTPS": true
-    //是否自动更新种子的tracker为https
   }
 }

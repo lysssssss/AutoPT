@@ -5,11 +5,11 @@ from io import BytesIO
 from PIL import Image
 from bs4 import BeautifulSoup
 
-import globalvar as gl
-from AutoPT import AutoPT, AutoPT_Page
+import tools.globalvar as gl
+from autopt import AutoPT
 
 
-class AutoPT_PTER(AutoPT):
+class AutoPT_PTER(AutoPT.AutoPT):
     """login/logout/getpage"""
 
     def __init__(self):
@@ -45,7 +45,7 @@ class AutoPT_PTER(AutoPT):
                 'verify_code': gl.get_value('logindata')[1]['secondverify']
             }
             main_page = self._session.post(
-                self._root + 'takelogin.php', login_data, timeout=(30, 30))
+                self._root + 'takelogin.php', login_data, headers=self.headers, timeout=(30, 30))
             if main_page.url != self._root + 'index.php':
                 self.logger.error('Login error')
                 return False
@@ -159,7 +159,7 @@ class AutoPT_PTER(AutoPT):
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
 
-class AutoPT_Page_PTER(AutoPT_Page):
+class AutoPT_Page_PTER(AutoPT.AutoPT_Page):
     """Torrent Page Info"""
 
     def __init__(self, soup):
@@ -191,6 +191,7 @@ class AutoPT_Page_PTER(AutoPT_Page):
         """Check torrent info
         :returns: If a torrent are ok to be downloaded
         """
-        self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
-            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
+        self.logger.info(
+            self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
+                self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
         return self.size < 128

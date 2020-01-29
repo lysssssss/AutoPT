@@ -16,68 +16,77 @@ class Config(object):
             return self.pterconfig
         elif key.upper() == 'MTEAM':
             return self.mteamconfig
-        return {}
+        elif key.upper() == 'ALL':
+            return {
+                'BYR': self.byrconfig,
+                'TJU': self.tjuconfig,
+                'PTER': self.pterconfig,
+                'MTEAM': self.mteamconfig,
+            }
+        else:
+            return {}
 
     def __init__(self):
+        self.reseedconfig = {
+            'switch': True,
+            # TODO token为空时报错退出
+            'token': ''
+        }
         self.byrconfig = {
             'switch': False,
-            'checktrackerhttps': False,
+            'name': 'BYR',
+            'passkey': '',
             'maincategory': '',
             'subcategory': [],
-            'qbaddr': '',
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'dlroot': '',
-            'autoflag': False,
             'intervaltime': 60,
             'keeptorrenttime': 0,
             'root': 'https://bt.byr.cn/'
         }
         self.tjuconfig = {
             'switch': False,
-            'checktrackerhttps': False,
+            'name': 'TJU',
+            'passkey': '',
             'maincategory': '',
             'subcategory': [],
-            'qbaddr': '',
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'dlroot': '',
-            'autoflag': False,
             'intervaltime': 60,
             'keeptorrenttime': 0,
             'root': 'https://www.tjupt.org/'
         }
         self.pterconfig = {
             'switch': False,
-            'checktrackerhttps': False,
+            'name': 'PTER',
+            'passkey': '',
             'maincategory': '',
             'subcategory': [],
-            'qbaddr': '',
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'dlroot': '',
-            'autoflag': False,
             'intervaltime': 60,
             'keeptorrenttime': 0,
             'root': 'https://pterclub.com/'
         }
         self.mteamconfig = {
             'switch': False,
-            'checktrackerhttps': False,
+            'name': 'MTeam',
+            'passkey': '',
             'maincategory': '',
             'subcategory': [],
-            'qbaddr': '',
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'dlroot': '',
-            'autoflag': False,
             'intervaltime': 60,
             'keeptorrenttime': 0,
             'root': 'https://pt.m-team.cc/'
+        }
+        self.qbtconfig = {
+            'url': '',
+            'path': ''
         }
         if os.path.exists('config.json'):
             f = open('config.json', 'r', encoding='utf-8')
@@ -91,6 +100,7 @@ class Config(object):
             self.readtjuconfig(paras)
             self.readpterconfig(paras)
             self.readmteamconfig(paras)
+            self.readreseedconfig(paras)
         else:
             self._logsavetime = 7
             self._loglevel = 'info'
@@ -132,18 +142,10 @@ class Config(object):
     def readcommonconfig(self, paras, pt_config):
         if 'switch' in paras:
             pt_config['switch'] = paras['switch']
-        if 'torrent_download_root' in paras:
-            pt_config['dlroot'] = paras['torrent_download_root']
-            if not pt_config['dlroot'].endswith('/'):
-                pt_config['dlroot'] = pt_config['dlroot'] + '/'
-        if 'Auto_management' in paras:
-            pt_config['autoflag'] = paras['Auto_management']
         if 'IntervalTime' in paras:
-            pt_config['intervaltime'] = paras['IntervalTime']
+            pt_config['intervaltime'] = paras['IntervalTime'] * 60
         if 'CapacityNum' in paras:
             pt_config['capacitynum'] = paras['CapacityNum'] if paras['CapacityNum'] > -1 else 10485760
-        if 'QB_WebAddr' in paras:
-            pt_config['qbaddr'] = paras['QB_WebAddr']
         if 'CapacityUint' in paras:
             pt_config['capacityuint'] = paras['CapacityUint'].upper() \
                 if paras['CapacityUint'].upper() in ['GB', 'TB'] else 'GB'
@@ -153,14 +155,10 @@ class Config(object):
             pt_config['subcategory'] = list(set(pt_config['subcategory']))
         if 'KeepTorrentTime' in paras:
             pt_config['keeptorrenttime'] = paras['KeepTorrentTime'] if paras['KeepTorrentTime'] >= 0 else 0
-
-        if 'CheckTrackerHTTPS' in paras:
-            pt_config['checktrackerhttps'] = paras['CheckTrackerHTTPS']
+        if 'passkey' in paras:
+            pt_config['passkey'] = paras['passkey']
         # 转换磁盘容量
         self.transcapacity(pt_config)
-        # 处理异常情况，强制关闭磁盘管理
-        if pt_config['capacitynum'] == 0:
-            pt_config['autoflag'] = False
 
     def readlogconfig(self, para):
         if 'log' in para:
@@ -179,28 +177,45 @@ class Config(object):
             self._logsavetime = 7
 
     def readqbtconfig(self, para):
-        if 'qbt' in para:
-            paras = para['qbt']
+        if 'QBitTorrent' in para:
+            paras = para['QBitTorrent']
             if 'path' in paras:
-                self._qbtpath = paras['path']
+                self.qbtconfig['path'] = paras['path']
             else:
-                self._qbtpath = ''
-        else:
-            self._qbtpath = ''
+                self.qbtconfig['path'] = ''
+            if 'url' in paras:
+                if not (paras['url'].startswith('http://') or paras['url'].startswith('https://')):
+                    paras['url'] = 'http://' + paras['url']
+                self.qbtconfig['url'] = paras['url'][:-1] if paras['url'].endswith('/') else paras['url']
+            else:
+                self.qbtconfig['url'] = ''
+
+    def readreseedconfig(self, para):
+        if 'ReSeed' in para:
+            paras = para['ReSeed']
+            if 'switch' in paras:
+                self.reseedconfig['switch'] = paras['switch']
+            else:
+                self.reseedconfig['switch'] = False
+            if 'token' in paras:
+                self.reseedconfig['token'] = paras['token']
+            else:
+                self.reseedconfig['token'] = ""
 
     def getnameconfig(self):
         return {
             'BYR': self.byrconfig,
             'TJU': self.tjuconfig,
             'PTER': self.pterconfig,
-            'MTEAM': self.mteamconfig
+            'MTEAM': self.mteamconfig,
+            'RESEED': self.reseedconfig
         }
 
     def switch(self, name):
         return self.getnameconfig()[name.upper()]['switch']
 
-    def checktrackerhttps(self, name):
-        return self.getnameconfig()[name.upper()]['checktrackerhttps']
+    def name(self, name):
+        return self.getnameconfig()[name.upper()]['name']
 
     def keeptorrenttime(self, name):
         return self.getnameconfig()[name.upper()]['keeptorrenttime']
@@ -211,24 +226,26 @@ class Config(object):
     def subcategory(self, name):
         return self.getnameconfig()[name.upper()]['subcategory']
 
-    def qbaddr(self, name):
-        return self.getnameconfig()[name.upper()]['qbaddr']
-
     def capacity(self, name):
         return self.getnameconfig()[name.upper()]['capacity']
-
-    def dlroot(self, name):
-        return self.getnameconfig()[name.upper()]['dlroot']
-
-    def autoflag(self, name):
-        return self.getnameconfig()[name.upper()]['autoflag']
 
     def intervaltime(self, name):
         return self.getnameconfig()[name.upper()]['intervaltime']
 
+    def passkey(self, name):
+        return self.getnameconfig()[name.upper()]['passkey']
+
+    @property
+    def qbaddr(self):
+        return self.qbtconfig['url']
+
+    @property
+    def token(self):
+        return self.reseedconfig['token']
+
     @property
     def qbtpath(self):
-        return self._qbtpath
+        return self.qbtconfig['path']
 
     @property
     def loglevel(self):
@@ -237,9 +254,3 @@ class Config(object):
     @property
     def logsavetime(self):
         return self._logsavetime
-
-
-if __name__ == '__main__':
-    config = Config()
-    print(config['MTEAM'])
-    pass

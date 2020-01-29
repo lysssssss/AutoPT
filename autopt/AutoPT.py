@@ -5,57 +5,50 @@ import time
 import traceback
 from abc import abstractmethod, ABC
 from io import BytesIO
-from urllib.parse import unquote
 from urllib.parse import urlparse, parse_qs
 
-import requests
+import cloudscraper
 from PIL import Image
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
-import QBmana
-import TorrentHash
-import globalvar as gl
+import tools.globalvar as gl
+from autopt import QBmanage_Reseed
+from tools import TorrentInfo
 
 
 class AutoPT(ABC):
     """login/logout/getpage"""
 
     def __init__(self, stationname):
+        basepath = 'autopt/'
         self.stationname = stationname.upper()
         self.config = gl.get_value('config')[self.stationname]
         self.logger = gl.get_value('logger').logger
         self.app = gl.get_value('wxpython')
 
-        self._session = requests.session()
-        self.csvfilename = self.stationname + 'list.csv'
-        self.webagentfilename = self.stationname + '_webagent'
-        self.recordtimefilename = self.stationname + '_timerecord.csv'
-        self.cookiefilename = self.stationname + '_cookie'
+        self._session = cloudscraper.create_scraper(delay=5)
+        self.csvfilename = basepath + 'torrentslist/' + self.stationname + '_list.csv'
+        self.webagentfilename = basepath + 'useragent/' + self.stationname + '_webagent'
+        self.cookiefilename = basepath + 'cookies/' + self.stationname + '_cookie'
         self._root = self.config['root']
+        self.psk = self.config['passkey']
         self.list = []
         self.autoptpage = AutoPT_Page
-        self.qbapi = QBmana.QBAPI(self.config)
+        self.manager = QBmanage_Reseed.Manager(self.config)
         self.useragent = ''
-        if os.path.exists(self.webagentfilename):
-            with open(self.webagentfilename, 'r', encoding='UTF-8') as f:
-                for line in f.readlines():
-                    self.useragent = line
-                    break
-        else:
-            with open(self.webagentfilename, 'w', encoding='UTF-8') as f:
-                tmpagent = UserAgent().random
-                self.useragent = tmpagent
-                f.write(tmpagent)
-        self._session.headers = {
+        self.readwebagent()
+        self.headers = {
             'User-Agent': self.useragent
         }
+        if self.config['switch']:
+            self._load()
         if os.path.exists(self.csvfilename):
             self.logger.debug('Read list.csv')
             with open(self.csvfilename, 'r', encoding='UTF-8') as f:
                 for line in f.readlines():
                     self.list.append(line.split(',')[0])
-        self.logger.info('初始化成功，开始监听')
+        # self.logger.info('初始化成功，开始监听')
 
     def login(self):
         try:
@@ -65,7 +58,7 @@ class AutoPT(ABC):
                 'input', attrs={'name': 'imagehash'})['value']
             self.logger.info('Image url: ' + image_url)
             self.logger.info('Image hash: ' + image_hash)
-            req = self._session.get(self._root + image_url, timeout=(30, 30))
+            req = self._session.get(self._root + image_url, headers=self.headers, timeout=(30, 30))
             image_file = Image.open(BytesIO(req.content))
             # image_file.show()
             # captcha_text = input('If image can not open in your system, then open the url below in browser\n'
@@ -85,7 +78,7 @@ class AutoPT(ABC):
                 'imagehash': image_hash
             }
             main_page = self._session.post(
-                self._root + 'takelogin.php', login_data, timeout=(30, 30))
+                self._root + 'takelogin.php', login_data, headers=self.headers, timeout=(30, 30))
             if main_page.url != self._root + 'index.php':
                 self.logger.error('Login error')
                 return False
@@ -104,15 +97,13 @@ class AutoPT(ABC):
 
     def _load(self):
         """Load cookies from file"""
-        if os.path.exists(self.cookiefilename):
-            with open(self.cookiefilename, 'rb') as f:
-                self.logger.debug('Load cookies from file.')
-                self._session.cookies = pickle.load(f)
-        else:
+        while not os.path.exists(self.cookiefilename):
             self.logger.debug('Load cookies by login')
-            return self.login()
+            self.login()
             # self._save()
-        return True
+        with open(self.cookiefilename, 'rb') as f:
+            self.logger.debug('Load cookies from file.')
+            self._session.cookies = pickle.load(f)
 
     @property
     def pages(self):
@@ -167,13 +158,13 @@ class AutoPT(ABC):
         trytime = 3
         while trytime > 0:
             try:
-                req = self._session.get(self._root + url, timeout=(30, 60))
+                req = self._session.get(self._root + url, headers=self.headers, timeout=(10, 60))
                 self.logger.debug('获取页面状态' + str(req.status_code))
                 return BeautifulSoup(req.text, 'lxml')
             except BaseException as e:
-                self.logger.exception(traceback.format_exc())
+                self.logger.debug(e)
                 trytime -= 1
-                time.sleep(30)
+                time.sleep(3)
 
     def pageinfotocsv(self, f, page):
         f.write(page.id + ',' + page.name + ',' + str(page.size) + 'GB,' + page.lefttime + '\n')
@@ -186,8 +177,8 @@ class AutoPT(ABC):
     def start(self):
         """Start spider"""
         self.logger.info('Start Spider [' + self.stationname + ']')
-        self.checktorrenttime()
-        self._load()
+        # self.checktorrenttime()
+        # self._load()
         with open(self.csvfilename, 'a', encoding='UTF-8') as f:
             try:
                 for page in self.pages:
@@ -203,7 +194,7 @@ class AutoPT(ABC):
                             continue
                         # 通过条件后再开始下载
                         req_dl = self.getdownload(page.id)
-                        thash = TorrentHash.get_torrent_hash40(req_dl.content) if req_dl.status_code == 200 else ''
+                        thash = TorrentInfo.get_torrent_hash40(req_dl.content) if req_dl.status_code == 200 else ''
 
                         self.logger.info('Download ' + page.name)
                         self.downloadtorrent(f, page, req_dl, thash)
@@ -213,33 +204,18 @@ class AutoPT(ABC):
 
     def downloadtorrent(self, f, page, req_dl, thash):
         try:
-            if self.config['autoflag']:
-                # check disk capaciry
-                if req_dl.status_code == 200:
-                    self.logger.info('Add ' + page.name)
-                    self.qbapi.addtorrent(req_dl.content, thash, page.size)
-                    self.pageinfotocsv(f, page)
-                    self.recordtorrenttime(page, thash)
-                    self.list.append(page.id)
-                    # 防反爬虫
-                    time.sleep(3)
-
-                else:
-                    self.logger.error('Download Error:')
+            # check disk capaciry
+            if req_dl.status_code == 200:
+                self.logger.info('Add ' + page.name)
+                self.manager.addtorrent(req_dl.content, thash, page)
+                self.pageinfotocsv(f, page)
+                # self.recordtorrenttime(page, thash)
+                self.list.append(page.id)
+                # 防反爬虫
+                time.sleep(3)
             else:
-                if req_dl.status_code == 200:
-                    self.logger.info('Add ' + page.name)
-                    filename = req_dl.headers['content-disposition']
-                    filename = unquote(filename[filename.find('name') + 5:])
-                    with open(self.config['dlroot'] + filename, 'wb') as fp:
-                        fp.write(req_dl.content)
-                    self.list.append(page.id)
-                    self.recordtorrenttime(page, thash)
-                    self.pageinfotocsv(f, page)
-                    # 防反爬虫
-                    time.sleep(3)
-                else:
-                    self.logger.error('Download Error:')
+                self.logger.error('Download Error:')
+
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
 
@@ -253,46 +229,65 @@ class AutoPT(ABC):
         req = None
 
         while trytime < 3:
-            req = self._session.get(url, timeout=(30, 60))
             try:
+                req = self._session.get(url, timeout=(30, 60))
                 if req.status_code == 200:
-                    # filename = req.headers['content-disposition']
-                    # filename = unquote(filename[filename.find('name') + 5:])
-                    # with open(self.config['dlroot'] + filename, 'wb') as f:
-                    # f.write(req.content)
                     break
                 else:
                     trytime += 1
                     self.logger.error('Download Fail trytime = ' + str(trytime))
                     time.sleep(10)
             except BaseException as e:
+                self.logger.error('Download Fail trytime = ' + str(trytime))
+                trytime += 1
                 self.logger.exception(traceback.format_exc())
         return req
 
-    def recordtorrenttime(self, page, thash):
-        if page.futherstamp != -1:
-            with open(self.recordtimefilename, 'a') as f:
-                f.write(page.id + ',' + str(page.futherstamp) + ',' + thash + '\n')
+    def getdownloadbypsk(self, id_):
+        """Download torrent in url
+        :url: url
+        :filename: torrent
+        """
+        if isinstance(id_, int):
+            id_ = str(id_)
+        url = self._root + 'download.php?id=' + id_ + '&passkey=' + self.psk
+        trytime = 0
+        req = None
 
-    def checktorrenttime(self):
-        newstr = ''
-        updatefile = False
-        if os.path.exists(self.recordtimefilename):
-            with open(self.recordtimefilename, 'r') as f:
+        while trytime < 3:
+            try:
+                req = self._session.get(url, timeout=(30, 60))
+
+                if req.status_code == 200:
+                    # 第二个返回值为这种子是否还存在的标志，提供的是接口
+                    return req, True
+                elif req.status_code == 404:
+                    # 该种子不存在
+                    return req, False
+                else:
+                    trytime += 1
+                    self.logger.error('Download Fail trytime = ' + str(trytime))
+                    time.sleep(10)
+            except BaseException as e:
+                self.logger.error('Download Fail trytime = ' + str(trytime))
+                trytime += 1
+                self.logger.exception(traceback.format_exc())
+        return req, False
+
+    def readwebagent(self):
+        hasrecord = False
+        if os.path.exists(self.webagentfilename):
+            with open(self.webagentfilename, 'r', encoding='UTF-8') as f:
                 for line in f.readlines():
-                    dline = line.strip().split(',')
-                    if float(dline[1]) - time.time() > 600:
-                        newstr += line
-                    else:
-                        updatefile = True
-                        if not self.qbapi.checktorrentdtanddd(dline[2]):
-                            self.logger.info(self.stationname + ':删除' + dline[2] + ',' + dline[0] + '因为没有在免费时间内下载完毕')
-                        else:
-                            self.logger.info(self.stationname + ':种子' + dline[2] + ',' + dline[0] + '在免费时间前完成')
-        # 需要更新才写入
-        if updatefile:
-            with open(self.recordtimefilename, 'w') as f:
-                f.write(newstr)
+                    if line != '':
+                        self.useragent = line
+                        hasrecord = True
+                    break
+        if not hasrecord:
+            with open(self.webagentfilename, 'w', encoding='UTF-8') as f:
+                tmpagent = UserAgent().random
+                self.useragent = tmpagent
+                f.write(tmpagent)
 
 
 class AutoPT_Page(object):
@@ -307,6 +302,8 @@ class AutoPT_Page(object):
         url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
         self.type = soup.img['title']
+        self.createtime = soup.find_all('td')[-6].text
+        self.createtimestamp = self.totimestamp(self.createtime)
         self.size = self.tosize(soup.find_all('td')[-5].text)
         self.seeders = int(soup.find_all('td')[-4].text.replace(',', ''))
         self.leechers = int(soup.find_all('td')[-3].text.replace(',', ''))
@@ -320,8 +317,9 @@ class AutoPT_Page(object):
         """Check torrent info
         :returns: If a torrent are ok to be downloaded
         """
-        self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + str(self.size) + 'GB,' + str(
-            self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
+        self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(
+            self.size) + 'GB,' + str(self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(
+            self.lefttime))
         return self.size < 2048
 
     def tosize(self, text):
@@ -378,4 +376,37 @@ class AutoPT_Page(object):
 
     def matchlefttimestr(self, strt):
         return '天' in strt or '时' in strt or '分' in strt or '秒' in strt or '月' in strt \
-               or '日' in strt or '時' in strt
+               or '日' in strt or '時' or '年' in strt
+
+    def totimestamp(self, strt):
+        stamp = 0
+        if '<' in strt:
+            strt = strt[1:]
+        if '年' in strt:
+            stamp += int(strt[:strt.find('年')]) * 365 * 24 * 60 * 60
+            strt = strt[strt.find('年') + 1:]
+        if '月' in strt:
+            stamp += int(strt[:strt.find('月')]) * 30 * 24 * 60 * 60
+            strt = strt[strt.find('月') + 1:]
+        if '天' in strt:
+            stamp += int(strt[:strt.find('天')]) * 24 * 60 * 60
+            strt = strt[strt.find('天') + 1:]
+        # MT
+        if '日' in strt:
+            stamp += int(strt[:strt.find('日')]) * 24 * 60 * 60
+            strt = strt[strt.find('日') + 1:]
+        if '时' in strt:
+            stamp += int(strt[:strt.find('时')]) * 60 * 60
+            strt = strt[strt.find('时') + 1:]
+        # MT
+        if '時' in strt:
+            stamp += int(strt[:strt.find('時')]) * 60 * 60
+            strt = strt[strt.find('時') + 1:]
+        if '分' in strt:
+            stamp += int(strt[:strt.find('分')]) * 60
+            strt = strt[strt.find('分') + 1:]
+        if '秒' in strt:
+            stamp += int(strt[:strt.find('秒')])
+            # strt = strt[strt.find('秒') + 1:]
+
+        return stamp

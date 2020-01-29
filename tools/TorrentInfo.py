@@ -2,14 +2,12 @@ import traceback
 
 import libtorrent
 
-import globalvar as gl
+import tools.globalvar as gl
 
 
 def get_torrent_hash40(data):
     try:
-        with open('ttmp.dat', 'wb') as f:
-            f.write(data)
-        return str(libtorrent.torrent_info('ttmp.dat').info_hash())
+        return str(libtorrent.torrent_info(libtorrent.bdecode(data)).info_hash())
         # mangetlink = magneturi.from_torrent_data(data)
         # mangetlink = mangetlink[mangetlink.find('btih') + 5:mangetlink.find('btih') + 5 + 32]
         # b16Hash = base64.b16encode(base64.b32decode(mangetlink))
@@ -20,5 +18,8 @@ def get_torrent_hash40(data):
         gl.get_value('logger').logger.exception(traceback.format_exc())
 
 
-if __name__ == '__main__':
-    pass
+def get_torrent_name(data):
+    try:
+        return str(libtorrent.torrent_info(libtorrent.bdecode(data)).name())
+    except BaseException as e:
+        gl.get_value('logger').logger.exception(traceback.format_exc())

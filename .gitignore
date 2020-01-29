@@ -8,14 +8,16 @@ __pycache__/
 *.log*
 *.txt
 !requirements.txt
+!.gitkeep
 *.csv
-test.py
+test*
 *_cookie
 *.torrent
 *.html
-ttmp.dat
 *webagent
 *.bat
+*.json
+
 # C extensions
 *.so
 
