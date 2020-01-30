@@ -123,6 +123,8 @@ class AutoPT(ABC):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='twoupfree_bg'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
                     yield self.autoptpage(line)
                     n = 1
@@ -139,6 +141,8 @@ class AutoPT(ABC):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='free_bg'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
                     yield self.autoptpage(line)
                     n = 1
@@ -348,6 +352,9 @@ class AutoPT_Page(object):
     def mystrptime(self, strt):
         now = datetime.datetime.now()
         futhertime = now
+        if '年' in strt:
+            futhertime += datetime.timedelta(days=int(strt[:strt.find('年')]) * 365)  # 算30天，应该够一个种子下载完成
+            strt = strt[strt.find('年') + 1:]
         if '月' in strt:
             futhertime += datetime.timedelta(days=int(strt[:strt.find('月')]) * 30)  # 算30天，应该够一个种子下载完成
             strt = strt[strt.find('月') + 1:]

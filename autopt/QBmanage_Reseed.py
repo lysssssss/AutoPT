@@ -121,24 +121,12 @@ class Manager(object):
             filescount += len(self.qbapi.torrentFiles(val[0]))
             alllist.append(val[0])
             alllist += val[1]
+        self.logger.info('删除种子.' + ",".join(alllist))
         if not self.qbapi.torrentsDelete(alllist, True):
             ret = False
         # 每个文件延迟0.2秒
         time.sleep(filescount / 5)
-        # for val in alllist:
-        #     filescount = len(self.qbapi.torrentfiles(val))
-        #     self.logger.debug('filescount:' + str(filescount))
-        #     info = self.get_url('/api/v2/torrents/delete?hashes=' + val + '&deleteFiles=' + str(deleteFiles))
-        #     if info.status_code == 200:
-        #         self.logger.info('deleting')
-        #         # 每一个文件删除0.1秒
-        #
-        #         self.logger.info('delete torrent success , torrent hash =' + str(val))
-        #         # self.diskdelay(val[1])
-        #     else:
-        #         ret = False
-        #         self.logger.error(
-        #             'delete torrent error ,status code = ' + str(info.status_code) + ', torrent hash =' + str(val))
+
         jsonlist = {}
         updatefile = False
         if len(stlist) and os.path.exists(self.reseedjsonname):
@@ -149,6 +137,11 @@ class Manager(object):
                 if val[0] in jsonlist:
                     updatefile = True
                     del jsonlist[val[0]]
+                for rsval in val[1]:
+                    if rsval in jsonlist:
+                        self.logger.error('出问题了，辅种信息不应该出现在主种信息里.' + rsval)
+                        updatefile = True
+                        del jsonlist[rsval]
         if updatefile:
             with open(self.reseedjsonname, 'w', encoding='UTF-8')as f:
                 f.write(json.dumps(jsonlist))
@@ -299,43 +292,6 @@ class Manager(object):
         return tinfo['category']
         # self.logger.debug('torrent category:' + tcategory)
 
-    # def gettorrenttracker(self, thash):
-    #     info = self.get_url('/api/v2/torrents/trackers?hash=' + thash)
-    #     self.logger.debug('status code = ' + str(info.status_code))
-    #     if info.status_code == 200:
-    #         listjs = info.json()
-    #         tracker = [val['url'] for val in listjs if val['status'] != 0]
-    #         # self.logger.debug('tracker:' + '\n'.join(tracker))
-    #         return tracker
-    #     elif info.status_code == 404:
-    #         self.logger.error('Torrent hash was not found')
-    #         return []
-
-    # def gettorrentcontent(self, thash):
-    #     info = self.get_url('/api/v2/torrents/files?hash=' + thash)
-    #     self.logger.debug('status code = ' + str(info.status_code))
-    #     if info.status_code == 200:
-    #         listjs = info.json()
-    #         return listjs
-    #     elif info.status_code == 404:
-    #         self.logger.error('Torrent hash was not found')
-    #     # 默认只有一个文件
-    #     return 1
-    #
-    # def edittorrenttracker(self, thash, origin, new):
-    #     info = self.get_url('/api/v2/torrents/editTracker?hash=' + thash +
-    #                         '&origUrl=' + origin + '&newUrl=' + new)
-    #     self.logger.debug('status code = ' + str(info.status_code))
-    #     if info.status_code == 200:
-    #         return True
-    #     elif info.status_code == 400:
-    #         self.logger.error('newUrl is not a valid URL')
-    #     elif info.status_code == 404:
-    #         self.logger.error('Torrent hash was not found')
-    #     elif info.status_code == 409:
-    #         self.logger.error('newUrl already exists for the torrent or origUrl was not found')
-    #     return False
-
     def checktorrenttracker(self, thash):
         trackers = self.qbapi.torrentTrackers(thash)
         for val in trackers:
@@ -343,38 +299,6 @@ class Manager(object):
                 new = val[:4] + 's' + val[4:]
                 self.qbapi.editTracker(thash, val, new)
                 self.logger.info('更新tracker的http为https')
-
-    # def get_url(self, url):
-    #     """Return BeautifulSoup Pages
-    #     :url: page url
-    #     :returns: BeautifulSoups
-    #     """
-    #     # self.logger.debug('Get url: ' + url)
-    #     trytime = 3
-    #     while trytime > 0:
-    #         try:
-    #             req = self._session.get(self._root + url, timeout=(5, 30))
-    #             return req
-    #         except BaseException as e:
-    #             self.logger.debug(e)
-    #             trytime -= 1
-    #             time.sleep(5)
-    #
-    # def post_url(self, url, data=None, files=None):
-    #     """Return BeautifulSoup Pages
-    #     :url: page url
-    #     :returns: BeautifulSoups
-    #     """
-    #     # self.logger.debug('Get url: ' + url)
-    #     trytime = 3
-    #     while trytime > 0:
-    #         try:
-    #             req = self._session.post(self._root + url, files=files, data=data, timeout=(5, 30))
-    #             return req
-    #         except BaseException as e:
-    #             self.logger.debug(e)
-    #             trytime -= 1
-    #             time.sleep(5)
 
     def addtorrent(self, content, thash, page):
         # 判断种子是否存在
@@ -446,19 +370,6 @@ class Manager(object):
             if trackerstr in val:
                 self.qbapi.removeTrackers(thash, val)
 
-    # def removetorrenttracker(self, thash, url):
-    #     info = self.get_url('/api/v2/torrents/removeTrackers?hash=' + thash + '&urls=' + url)
-    #     if info.status_code == 200:
-    #         self.logger.debug('remove tracker successfully')
-    #         return True
-    #     elif info.status_code == 409:
-    #         self.logger.error('All urls were not found')
-    #     elif info.status_code == 404:
-    #         self.logger.error('Torrent hash was not found')
-    #     else:
-    #         self.logger.error('Unknow error')
-    #     return True
-
     def sortfilterwithreseed(self, tlist, method):
         temptlist = []
         with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
@@ -498,17 +409,6 @@ class Manager(object):
             elif method == 'last_activity':
                 temptlist.sort(key=lambda x: x['last_activity'])
         return temptlist
-
-    # def gettorrentinfo(self, thash):
-    #     listjs = {}
-    #     info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
-    #     self.logger.debug('get torrent info status code = ' + str(info.status_code))
-    #     if info.status_code == 200:
-    #         listjs = info.json()
-    #         if len(listjs) == 0:
-    #             return []
-    #         return listjs[0]
-    #     return []
 
     #  若种子已存在，是否在下载目录、辅种目录、其他目录
     #  如果在下载目录，则已经为主，不动作
@@ -554,7 +454,6 @@ class Manager(object):
                             f.write(json.dumps(jsonlist))
                         # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
                         sec_rsca = self.qbapi.torrentInfo(thash)
-                        # TODO
                         self.changerstcategory(rsca, sec_rsca, rtcategory=category)
                 else:
                     self.logger.error('没找找到种子，出问题了')
@@ -606,22 +505,10 @@ class Manager(object):
                     except FileExistsError as _e:
                         self.logger.error(_e)
         return True
-                # for root, dirs, files in os.walk(srcpath + srcname):
-            #     # print(root, dirs, files)
-            #     for dir in dirs:
-            #         relativepath = root[srcpathlo + len(srcname):]
-            #         os.makedirs(dst + relativepath + '\\' + dir, exist_ok=True)
-            #     for file in files:
-            #         relativepath = root[srcpathlo + len(srcname):]
-            #         # 这里报错有可能是路径名过长
-            #         os.link(root + '\\' + file, dst + relativepath + '\\' + file)
 
     def changerstcategory(self, ptinfo, rtinfo, rtstationname=None, rtcategory=None):
         # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
-        # mainpath = self.dlcategory[self.maincategory]['savePath']
         self.qbapi.setAutoManagement([ptinfo['hash'], rtinfo['hash']], False)
-        # self.qbapi.setAutoManagement(rtinfo['hash'], False)
-        # self.changetorrentsavepath(ptinfo['hash'],mainpath+'Reseed')
         # Reseed的时候主目录是 ---TEST ok
         if rtstationname is not None:
             self.qbapi.setTorrentsCategory(rtinfo['hash'], gl.get_value('config')[rtstationname]['maincategory'])
@@ -798,8 +685,8 @@ class Manager(object):
                 for i in range(0, len(filelist) + pos):
                     filterdstpath += filelist[i] + '\\'
         if not self.createhardfiles(ptinfo['save_path'], ptinfo['name'], dircontent, filterdstpath + 'ReSeed\\',
-                             rsinfo['hash'][:6],
-                             get_torrent_name(content)):
+                                    rsinfo['hash'][:6],
+                                    get_torrent_name(content)):
             return False
 
         if self.qbapi.addNewTorrentByBin(content, paused=True, category=self.reseedcategory, autoTMM=False,

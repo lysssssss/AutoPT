@@ -16,12 +16,15 @@ class Config(object):
             return self.pterconfig
         elif key.upper() == 'MTEAM':
             return self.mteamconfig
+        elif key.upper() == 'PTHOME':
+            return self.pthomeconfig
         elif key.upper() == 'ALL':
             return {
                 'BYR': self.byrconfig,
                 'TJU': self.tjuconfig,
                 'PTER': self.pterconfig,
                 'MTEAM': self.mteamconfig,
+                'PTHOME': self.pthomeconfig
             }
         else:
             return {}
@@ -41,7 +44,7 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 60,
+            'intervaltime': 10,
             'keeptorrenttime': 0,
             'root': 'https://bt.byr.cn/'
         }
@@ -54,7 +57,7 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 60,
+            'intervaltime': 10,
             'keeptorrenttime': 0,
             'root': 'https://www.tjupt.org/'
         }
@@ -67,7 +70,7 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 60,
+            'intervaltime': 10,
             'keeptorrenttime': 0,
             'root': 'https://pterclub.com/'
         }
@@ -80,9 +83,22 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 60,
+            'intervaltime': 10,
             'keeptorrenttime': 0,
             'root': 'https://pt.m-team.cc/'
+        }
+        self.pthomeconfig = {
+            'switch': False,
+            'name': 'PTHOME',
+            'passkey': '',
+            'maincategory': '',
+            'subcategory': [],
+            'capacity': 0,
+            'capacityuint': 'GB',
+            'capacitynum': 0,
+            'intervaltime': 10,
+            'keeptorrenttime': 0,
+            'root': 'https://www.pthome.net/'
         }
         self.qbtconfig = {
             'url': '',
@@ -100,6 +116,7 @@ class Config(object):
             self.readtjuconfig(paras)
             self.readpterconfig(paras)
             self.readmteamconfig(paras)
+            self.readpthomeconfig(paras)
             self.readreseedconfig(paras)
         else:
             self._logsavetime = 7
@@ -137,6 +154,12 @@ class Config(object):
         if 'MTEAM' in param:
             paras = param['MTEAM']
             self.readcommonconfig(paras, self.mteamconfig)
+            # To add custom config here
+
+    def readpthomeconfig(self, param):
+        if 'PTHOME' in param:
+            paras = param['PTHOME']
+            self.readcommonconfig(paras, self.pthomeconfig)
             # To add custom config here
 
     def readcommonconfig(self, paras, pt_config):
@@ -208,6 +231,7 @@ class Config(object):
             'TJU': self.tjuconfig,
             'PTER': self.pterconfig,
             'MTEAM': self.mteamconfig,
+            'PTHOME': self.pthomeconfig,
             'RESEED': self.reseedconfig
         }
 

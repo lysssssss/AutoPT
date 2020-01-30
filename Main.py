@@ -7,6 +7,7 @@ import psutil
 from autopt.AutoPT_BYR import AutoPT_BYR
 from autopt.AutoPT_MTEAM import AutoPT_MTEAM
 from autopt.AutoPT_PTER import AutoPT_PTER
+from autopt.AutoPT_PTHOME import AutoPT_PTHOME
 from autopt.AutoPT_TJU import AutoPT_TJU
 from autopt.QBmanage_Reseed import Manager
 
@@ -22,6 +23,7 @@ def run():
         auto_tju = None
         auto_pter = None
         auto_mteam = None
+        auto_pthome = None
 
         Runqbittorrent()
 
@@ -31,7 +33,8 @@ def run():
                 'byr': auto_byr,
                 'tju': auto_tju,
                 'mteam': auto_mteam,
-                'pter': auto_pter
+                'pter': auto_pter,
+                'pthome': auto_pthome
             }
         }
         gl.set_value('allref', refconfig)
@@ -43,12 +46,13 @@ def run():
         refconfig['ref']['pter'] = auto_pter
         auto_mteam = AutoPT_MTEAM()
         refconfig['ref']['mteam'] = auto_mteam
+        auto_pthome = AutoPT_PTHOME()
+        refconfig['ref']['pthome'] = auto_pthome
 
         if gl.get_value('config').switch('byr'):
             # auto_byr = AutoPT_BYR()
             if maxtime % gl.get_value('config').intervaltime('byr') != 0:
                 maxtime *= gl.get_value('config').intervaltime('byr')
-
         if gl.get_value('config').switch('tju'):
             # auto_tju = AutoPT_TJU()
             if maxtime % gl.get_value('config').intervaltime('tju') != 0:
@@ -61,35 +65,38 @@ def run():
             # auto_mteam = AutoPT_MTEAM()
             if maxtime % gl.get_value('config').intervaltime('mteam') != 0:
                 maxtime *= gl.get_value('config').intervaltime('mteam')
-        counttime = 0
+        if gl.get_value('config').switch('pthome'):
+            # auto_pthome = AutoPT_PTHOME()
+            if maxtime % gl.get_value('config').intervaltime('pthome') != 0:
+                maxtime *= gl.get_value('config').intervaltime('pthome')
 
         manager = Manager()
         if maxtime % (6 * 3600) != 0:
             maxtime *= (6 * 3600)
 
+        counttime = 0
         while gl.get_value('thread_flag'):
             if gl.get_value('config').switch('reseed') and counttime % 300 == 0:
                 manager.recheck()
-            if gl.get_value('config').switch('reseed') and counttime % (6 * 3600) == 0:
+            if gl.get_value('config').switch('reseed') and counttime % (6 * 3600) == (6 * 3600 -1):
                 manager.recheckall()
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('pthome') and counttime % gl.get_value(
+                    'config').intervaltime('pthome') == 0:
+                auto_pthome.start()
+                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('mteam') and counttime % gl.get_value(
                     'config').intervaltime('mteam') == 0:
                 auto_mteam.start()
-                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('tju') and counttime % gl.get_value(
-                    'config').intervaltime(
-                    'tju') == 0:
+                    'config').intervaltime('tju') == 0:
                 auto_tju.start()
-                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('pter') and counttime % gl.get_value(
                     'config').intervaltime('pter') == 0:
                 auto_pter.start()
-                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('byr') and counttime % gl.get_value(
-                    'config').intervaltime(
-                    'byr') == 0:
+                    'config').intervaltime('byr') == 0:
                 auto_byr.start()
-                pass
+
 
             counttime = (1 + counttime) % maxtime
             time.sleep(1)

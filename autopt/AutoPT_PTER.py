@@ -67,7 +67,6 @@ class AutoPT_PTER(AutoPT.AutoPT):
             if page.find('a', id='do-attendance') is not None:
                 self.logger.info('尝试签到...')
                 info = self._session.get(self._root + 'attendance-ajax.php', timeout=(30, 30))
-                print(info.json())
                 if info.json()['status'] == '1':
                     self.logger.info(info.json()['data'])
                     self.logger.info(info.json()['message'])
@@ -77,6 +76,7 @@ class AutoPT_PTER(AutoPT.AutoPT):
                     self.logger.warning(info.json()['message'])
                     self.logger.error('签到失败')
         except BaseException as e:
+            self.logger.error('签到失败')
             self.logger.exception(traceback.format_exc())
 
     @property
@@ -100,6 +100,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='sticky_top'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
                     yield self.autoptpage(line)
                     n = 1
@@ -116,6 +118,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='sticky_normal'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
                     yield self.autoptpage(line)
                     n = 1
@@ -132,6 +136,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='twoupfree_bg'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
                     yield self.autoptpage(line)
                     n = 1
@@ -148,6 +154,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
             # 防止网页获取失败时的异常
             for line in page.find_all('tr', class_='free_bg'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
                     yield self.autoptpage(line)
                     n = 1

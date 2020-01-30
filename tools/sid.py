@@ -7,6 +7,7 @@
 
 
 sidlist = {
+    2: 'pthome',
     3: 'mteam',
     5: 'tju',
     6: 'pter',

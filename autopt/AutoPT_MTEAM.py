@@ -99,9 +99,11 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             # 防止网页获取失败时的异常
             for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
-                    # TODO 2倍种暂时未获取
-                    if line.find('img', class_='pro_free') is not None:
+                    if line.find('img', class_='pro_free') is not None or \
+                            line.find('img', class_='pro_free2up') is not None:
                         yield self.autoptpage(line)
                         n = 1
                 else:
@@ -110,7 +112,6 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             self.logger.exception(traceback.format_exc())
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-
         if not gl.get_value('thread_flag'):
             return
 
@@ -125,9 +126,11 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             # 防止网页获取失败时的异常
             for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
-                    # TODO 2倍种暂时未获取
-                    if line.find('img', class_='pro_free') is not None:
+                    if line.find('img', class_='pro_free') is not None or \
+                            line.find('img',class_='pro_free2up') is not None:
                         yield self.autoptpage(line, 1)
                         n = 1
                 else:
@@ -136,7 +139,6 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             self.logger.exception(traceback.format_exc())
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-
         if not gl.get_value('thread_flag'):
             return
 
@@ -151,9 +153,11 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             # 防止网页获取失败时的异常
             for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
                 if n == 0:
+                    if not gl.get_value('thread_flag'):
+                        return
                     recheckpage = True
-                    # TODO 2倍种暂时未获取
-                    if line.find('img', class_='pro_free') is not None:
+                    if line.find('img', class_='pro_free') is not None or \
+                            line.find('img',class_='pro_free2up') is not None:
                         yield self.autoptpage(line)
                         n = 1
                 else:
@@ -222,7 +226,7 @@ class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
                              if self.matchlefttimestr(tmp_span.text)]
             if len(self.lefttime) == 1:
                 self.lefttime = self.lefttime[0][3:]
-                self.futherstamp = self.mystrptime(str(self.lefttime))
+                self.futherstamp = self.mystrptime(self.lefttime)
             else:
                 self.lefttime = ''
                 self.futherstamp = -1
