@@ -92,9 +92,9 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
         filterurl = 'torrents.php'
         pages = self.get_url(filterurl)
         self.logger.debug('Get torrents pages Done')
-        n = 1
         # 监测二次验证导致的登录问题
         recheckpage = False
+        n = 1
         try:
             # 防止网页获取失败时的异常
             for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
@@ -118,7 +118,6 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
         filterurl = 'adult.php'
         pages = self.get_url(filterurl)
         self.logger.debug('Get adult pages Done')
-
         # 监测二次验证导致的登录问题
         recheckpage = False
         n = 1
@@ -129,7 +128,7 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                     recheckpage = True
                     # TODO 2倍种暂时未获取
                     if line.find('img', class_='pro_free') is not None:
-                        yield self.autoptpage(line)
+                        yield self.autoptpage(line, 1)
                         n = 1
                 else:
                     n -= 1
@@ -145,7 +144,6 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
         filterurl = 'music.php'
         pages = self.get_url(filterurl)
         self.logger.debug('Get music pages Done')
-
         # 监测二次验证导致的登录问题
         recheckpage = False
         n = 1
@@ -199,11 +197,12 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
 class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
     """Torrent Page Info"""
 
-    def __init__(self, soup):
+    def __init__(self, soup, method=0):
         """Init variables
         :soup: Soup
         """
         self.logger = gl.get_value('logger').logger
+        self.method = method
         self.url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
         self.type = soup.img['title']
@@ -239,6 +238,10 @@ class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
         :returns: If a torrent are ok to be downloaded
         """
         self.logger.info(
-            self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
-                self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
-        return self.size < 256
+            self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ','
+            + str(self.size) + 'GB,' + str(self.seeders) + ',' + str(self.leechers)
+            + ',' + str(self.snatched) + ',' + str(self.lefttime))
+        if self.method == 0:
+            return self.size < 128
+        elif self.method == 1:
+            return self.size < 512
