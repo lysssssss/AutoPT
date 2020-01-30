@@ -56,8 +56,9 @@ class qbapi:
     def setAutoManagement(self, thash, b):
         if isinstance(thash, list):
             thash = "|".join(thash)
+        b = 'true' if b else 'false'
         info = self.get_url(
-            '/api/v2/torrents/setAutoManagement?hashes=' + thash + '&enable=' + 'true' if b else 'false')
+            '/api/v2/torrents/setAutoManagement?hashes=' + thash + '&enable=' + b)
         if info.status_code == 200:
             # self.logger.debug('成功关闭' + thash + '自动管理')
             pass
@@ -158,8 +159,9 @@ class qbapi:
     def torrentsDelete(self, dellist, deldata=True):
         if isinstance(dellist, list):
             dellist = "|".join(dellist)
+        deldata = 'true' if deldata else 'false'
         info = self.get_url(
-            '/api/v2/torrents/delete?hashes=' + dellist + '&deleteFiles=' + 'true' if deldata else 'false')
+            '/api/v2/torrents/delete?hashes=' + dellist + '&deleteFiles=' + deldata)
         if info.status_code == 200:
             # self.logger.info('deleting')
             # 每一个文件删除0.1秒
