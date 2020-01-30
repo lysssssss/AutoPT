@@ -179,7 +179,7 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
         while trytime < 3:
 
             try:
-                req = self._session.get(url, timeout=(10, 60))
+                req = self._session.get(url, timeout=(30, 60))
                 if req.status_code == 200:
                     return req, True
                 elif req.status_code == 404:

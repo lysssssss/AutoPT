@@ -390,7 +390,8 @@ class Manager(object):
             if not self.checksize(page.size):
                 return
 
-            if self.qbapi.addNewTorrentByBin(content, pause=True, category=self.maincategory, autoTMM=True):
+            if self.qbapi.addNewTorrentByBin(content, pause=False, category=self.maincategory, autoTMM=True):
+                self.logger.info('addreseed successfully info hash = ' + thash)
                 # 添加辅种功能后不再等待，否则经常在此等待
                 # 防止磁盘卡死,当磁盘碎片太多或磁盘负载重时此处会卡几到几十分钟
                 # while not self.gettorrentdlstatus(thash):
@@ -400,7 +401,7 @@ class Manager(object):
                 self.removematchtracker(thash, 'pttrackertju.tjupt.org')
 
                 self.checktorrenttracker(thash)
-                self.qbapi.resumeTorrents(thash)
+                # self.qbapi.resumeTorrents(thash)
                 with open(self.rechecklistname, 'a', encoding='UTF-8')as f:
                     f.write(self.config['name'] + ',' + page.id + ',' + 'dl' + ',' + thash + ',' + str(
                         page.futherstamp) + ',' + 'f' + '\n')
@@ -554,7 +555,7 @@ class Manager(object):
                         # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
                         sec_rsca = self.qbapi.torrentInfo(thash)
                         # TODO
-                        self.changerstcategory(rsca, sec_rsca, category=category)
+                        self.changerstcategory(rsca, sec_rsca, rtcategory=category)
                 else:
                     self.logger.error('没找找到种子，出问题了')
                     exit(6)
@@ -604,6 +605,7 @@ class Manager(object):
                                 '\\\\?\\' + dst + dirname[srcnamelen:] + '\\' + basename)
                     except FileExistsError as _e:
                         self.logger.error(_e)
+        return True
                 # for root, dirs, files in os.walk(srcpath + srcname):
             #     # print(root, dirs, files)
             #     for dir in dirs:
@@ -795,9 +797,10 @@ class Manager(object):
                 filterdstpath = ''
                 for i in range(0, len(filelist) + pos):
                     filterdstpath += filelist[i] + '\\'
-        self.createhardfiles(ptinfo['save_path'], ptinfo['name'], dircontent, filterdstpath + 'ReSeed\\',
+        if not self.createhardfiles(ptinfo['save_path'], ptinfo['name'], dircontent, filterdstpath + 'ReSeed\\',
                              rsinfo['hash'][:6],
-                             get_torrent_name(content))
+                             get_torrent_name(content)):
+            return False
 
         if self.qbapi.addNewTorrentByBin(content, pause=True, category=self.reseedcategory, autoTMM=False,
                                          savepath=filterdstpath + 'ReSeed' + '\\' + rsinfo['hash'][:6]):
@@ -1172,11 +1175,12 @@ class Manager(object):
         self.recheckallreport.listlen = len(prialllist)
 
         for key, value in reslist.items():
+            self.logger.info('检查主种.' + key)
             if len(value['torrent']) == 0:
                 self.recheckallreport.nofznum += 1
             for val in value['torrent']:
                 self.recheckallreport.rsnum += 1
-                self.logger.info('检查' + val['hash'] + ',tid:' + str(val['tid']) + ',sid:' + str(val['sid']))
+                self.logger.info('检查辅种' + val['hash'] + ',tid:' + str(val['tid']) + ',sid:' + str(val['sid']))
                 if val['hash'] in reseedalllist:
                     self.recheckallreport.yfznum += 1
                     continue
@@ -1188,6 +1192,10 @@ class Manager(object):
                     self.recheckallreport.newfznum += 1
                     rspstream, rspres = self.stationref[getsidname(val['sid'])].getdownloadbypsk(str(val['tid']))
                     if rspres:
+                        # 种子下载有问题的时候name空的，有一定几率会误判种子下载成功了，和网络状况有关
+                        if get_torrent_name(rspstream.content) is None:
+                            self.recheckallreport.failnum += 1
+                            continue
                         self.recheckallreport.succnum += 1
                         self.addreseed(key, val, rspstream.content)
                     else:
@@ -1200,7 +1208,7 @@ class Manager(object):
         res = {}
         if info is None:
             self.logger.error('连接辅种服务器失败')
-            return []
+            return {}
         if info.status_code == 200:
             # self.logger.debug(info.text)
             if info.text != 'null':
