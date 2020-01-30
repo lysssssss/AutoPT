@@ -43,7 +43,7 @@ class RecheckReport:
 
 class RecheckAllReport:
     def __init__(self):
-        self.listlen = 0
+        self.inquerynum = 0
         self.rsnum = 0
         self.yfznum = 0
         self.fzingnum = 0
@@ -51,9 +51,11 @@ class RecheckAllReport:
         self.nofznum = 0
         self.succnum = 0
         self.failnum = 0
+        self.resnum = 0
+        self.availablenum = 0
 
     def init(self):
-        self.listlen = 0
+        self.inquerynum = 0
         self.rsnum = 0
         self.yfznum = 0
         self.fzingnum = 0
@@ -61,9 +63,14 @@ class RecheckAllReport:
         self.nofznum = 0
         self.succnum = 0
         self.failnum = 0
+        self.resnum = 0
+        self.availablenum = 0
 
     def __str__(self):
-        return '\n' + \
-               '全辅种结束.查询辅种数:' + str(self.listlen) + '. 返回辅种数:' + str(self.rsnum) + '. 已辅种:' + str(
-            self.yfznum) + '. 正在辅种:' + str(self.fzingnum) + '. 新添加辅种:' + str(self.newfznum) + '. 成功辅种:' + str(
-            self.succnum) + '. 失败辅种:' + str(self.failnum) + '. 无辅种:' + str(self.nofznum)
+        return '\n\n' + \
+               '全辅种结束.\n' + \
+               '查询辅种数:' + str(self.inquerynum) + '. 返回辅种数:' + str(self.resnum) + '.\n' + \
+               '可辅种:' + str(self.availablenum) + '. 无辅种:' + str(self.nofznum) + '.\n' + \
+               '总辅种数:' + str(self.rsnum) + '.已辅种:' + str(self.yfznum) + '. 正在辅种:' + str(self.fzingnum) + \
+               '. 新添加辅种:' + str(self.newfznum) + '. 成功辅种:' + str(self.succnum) + '. 失败辅种:' + str(self.failnum) + \
+               '\n'
