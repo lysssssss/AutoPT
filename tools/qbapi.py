@@ -193,10 +193,10 @@ class qbapi:
             return listjs
         return {}
 
-    def addNewTorrentByBin(self, binary, pause=None, category=None, autoTMM=None, savepath=None):
+    def addNewTorrentByBin(self, binary, paused=None, category=None, autoTMM=None, savepath=None):
         data = {}
-        if pause is not None and isinstance(pause, bool):
-            data['pause'] = pause
+        if paused is not None and isinstance(paused, bool):
+            data['paused'] = paused
         if category is not None and isinstance(category, str):
             data['category'] = category
         if autoTMM is not None and isinstance(autoTMM, bool):

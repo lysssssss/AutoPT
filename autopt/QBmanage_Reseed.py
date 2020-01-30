@@ -390,8 +390,8 @@ class Manager(object):
             if not self.checksize(page.size):
                 return
 
-            if self.qbapi.addNewTorrentByBin(content, pause=False, category=self.maincategory, autoTMM=True):
-                self.logger.info('addreseed successfully info hash = ' + thash)
+            if self.qbapi.addNewTorrentByBin(content, paused=False, category=self.maincategory, autoTMM=True):
+                self.logger.info('addtorrent successfully info hash = ' + thash)
                 # 添加辅种功能后不再等待，否则经常在此等待
                 # 防止磁盘卡死,当磁盘碎片太多或磁盘负载重时此处会卡几到几十分钟
                 # while not self.gettorrentdlstatus(thash):
@@ -650,7 +650,7 @@ class Manager(object):
             "timestamp": time.time(),
             "sign": gl.get_value('config').token
         }
-        trytime = 3
+        trytime = 5
         while trytime > 0:
             try:
                 req = self._session.post('http://pt.iyuu.cn/api/infohash', data=data, timeout=(10, 30))
@@ -748,7 +748,7 @@ class Manager(object):
                              thash[:6],
                              get_torrent_name(content))
 
-        if self.qbapi.addNewTorrentByBin(content, pause=True, category=self.reseedcategory, autoTMM=False,
+        if self.qbapi.addNewTorrentByBin(content, paused=True, category=self.reseedcategory, autoTMM=False,
                                          savepath=filterdstpath + 'ReSeed' + '\\' + thash[:6]):
             self.logger.info('addtorrent  successfully info hash = ' + thash)
 
@@ -802,7 +802,7 @@ class Manager(object):
                              get_torrent_name(content)):
             return False
 
-        if self.qbapi.addNewTorrentByBin(content, pause=True, category=self.reseedcategory, autoTMM=False,
+        if self.qbapi.addNewTorrentByBin(content, paused=True, category=self.reseedcategory, autoTMM=False,
                                          savepath=filterdstpath + 'ReSeed' + '\\' + rsinfo['hash'][:6]):
             self.logger.info('addreseed successfully info hash = ' + rsinfo['hash'])
 
@@ -1144,7 +1144,6 @@ class Manager(object):
     def recheckall(self):
         reseedlist = {}
         reseedalllist = []
-        self.recheckallreport.init()
         if os.path.exists(self.reseedjsonname):
             with open(self.reseedjsonname, 'r', encoding='UTF-8')as f:
                 reseedlist = json.loads(f.read())
@@ -1171,13 +1170,17 @@ class Manager(object):
             prialllist.append(key)
 
         reslist = self.inqueryreseeds(prialllist)
-        self.logger.info('可辅种大小：' + str(len(reslist)))
-        self.recheckallreport.listlen = len(prialllist)
+        # self.logger.info('可辅种大小：' + str(len(reslist)))
+        self.recheckallreport.init()
+        self.recheckallreport.resnum = len(reslist)
+        self.recheckallreport.inquerynum = len(prialllist)
 
         for key, value in reslist.items():
             self.logger.info('检查主种.' + key)
             if len(value['torrent']) == 0:
                 self.recheckallreport.nofznum += 1
+            else:
+                self.recheckallreport.availablenum += 1
             for val in value['torrent']:
                 self.recheckallreport.rsnum += 1
                 self.logger.info('检查辅种' + val['hash'] + ',tid:' + str(val['tid']) + ',sid:' + str(val['sid']))
