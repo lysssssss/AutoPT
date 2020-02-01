@@ -35,7 +35,7 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
                 if info.status_code == 200:
                     rsptext = None
                     for line in BeautifulSoup(info.text, 'lxml').find_all('td', class_='text'):
-                        if '连接签到' in str(line):
+                        if '本次签到' in str(line):
                             rsptext = str(line)
                     if rsptext is not None:
                         self.logger.info(rsptext)
