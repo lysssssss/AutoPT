@@ -74,8 +74,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
                 self.logger.info('尝试签到...')
                 info = self._session.get(self._root + 'attendance-ajax.php', timeout=(30, 30))
                 if info.json()['status'] == '1':
-                    self.logger.info(info.json()['data'])
-                    self.logger.info(info.json()['message'])
+                    #  self.logger.info(info.json()['data'])
+                    self.logger.info(BeautifulSoup(info.json()['message'], 'lxml').text)
                     self.logger.info('签到成功')
                 else:
                     self.logger.warning(info.json()['data'])

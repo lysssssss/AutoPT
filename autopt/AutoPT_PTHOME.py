@@ -32,12 +32,9 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
             if page.find('a', href='attendance.php') is not None:
                 self.logger.info('尝试签到...')
                 info = self.get_url('attendance.php')
-                rsptext = None
                 for line in info.find_all('td', class_='text'):
                     if '本次签到' in str(line):
-                        rsptext = str(line)
-                if rsptext is not None:
-                    self.logger.info(rsptext)
+                        self.logger.info(line.text)
                 else:
                     self.logger.error('签到失败,未知原因')
         except BaseException as e:
