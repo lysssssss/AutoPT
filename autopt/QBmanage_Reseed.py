@@ -715,6 +715,7 @@ class Manager(object):
         return False
 
     def recheck(self):
+        self.logger.info('检查新添种子状态中...')
         dellist = []
         self.recheckreport.init()
         if os.path.exists(self.rechecklistname):
@@ -741,6 +742,22 @@ class Manager(object):
             with open(self.rechecklistname, 'w', encoding='UTF-8') as f:
                 f.write(newstr)
 
+    def addprtorrenttofile(self, info):
+        jsonlist = {}
+        if os.path.exists(self.reseedjsonname):
+            with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
+                jsonlist = json.loads(f.read())
+            if info['hash'] in jsonlist:
+                self.logger.warning('主种之前竟然存在？修改前信息为:' + str(jsonlist[info['hash']]))
+                self.logger.warning('修改后信息为:' + str(info))
+        jsonlist[info['hash']] = {
+            'info': info,
+            'rslist': []
+        }
+        with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
+            f.write(json.dumps(jsonlist))
+        return True
+
     def rechecktorrent(self, rct):
         # 下载种子看是否下载完毕
         if rct[2] == 'dl':
@@ -748,6 +765,11 @@ class Manager(object):
             if self.istorrentexist(rct[3]):
                 if self.istorrentdlcom(rct[3]):
                     self.recheckreport.dlcom += 1
+                    self.addprtorrenttofile({
+                        'hash': rct[3],
+                        'sname': rct[0].lower(),
+                        'tid': int(rct[1]) if isinstance(rct[1], str) else rct[1]
+                    })
                     # testOK
                     inquery = self.inqueryreseed(rct[3])
                     if self.addactivereseed(rct[0], rct[1], rct[3], inquery):
@@ -883,18 +905,15 @@ class Manager(object):
         if os.path.exists(self.reseedjsonname):
             with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
                 jsonlist = json.loads(f.read())
-        if prhash in jsonlist:
-            self.logger.error('不应该存在这个种子主种信息')
-        else:
-            jsonlist[prhash] = {
-                'info': {
-                    'hash': prhash,
-                    # 'sid': getnamesid(prname),
-                    'tid': int(prid) if isinstance(prid, str) else prid,
-                    'sname': prname
-                },
-                'rslist': []
-            }
+        jsonlist[prhash] = {
+            'info': {
+                'hash': prhash,
+                # 'sid': getnamesid(prname),
+                'tid': int(prid) if isinstance(prid, str) else prid,
+                'sname': prname
+            },
+            'rslist': []
+        }
         with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
             f.write(json.dumps(jsonlist))
         for val in inquery:
@@ -1065,6 +1084,7 @@ class Manager(object):
             self.logger.error('添加辅种信息怎么可能没有文件呢')
 
     def recheckall(self):
+        self.logger.info('检查全种子可辅种信息...')
         reseedlist = {}
         reseedalllist = []
         if os.path.exists(self.reseedjsonname):
@@ -1175,7 +1195,10 @@ class Manager(object):
             with open(self.rechecklistname, 'r', encoding='UTF-8') as f:
                 for line in f.readlines():
                     rct = line.strip().split(',')
-                    if rct[3] == thash and rct[1] == 'dl':
+                    # 正在辅种的跳过即可
+                    if rct[3] == thash and rct[2] == 'rs':
+                        return True
+                    if rct[3] == thash and rct[2] == 'dl':
                         self.deletetorrent(thash, True)
                         updatefile = True
                     else:
