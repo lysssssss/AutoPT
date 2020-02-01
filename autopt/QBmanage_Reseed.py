@@ -10,7 +10,7 @@ import tools.globalvar as gl
 from tools.RecheckReport import RecheckReport, RecheckAllReport
 from tools.TorrentInfo import get_torrent_name
 from tools.qbapi import qbapi
-from tools.sid import supportsid, getsidname
+from tools.sid import supportsid, getsidname, getnamesid
 
 
 class Manager(object):
@@ -121,7 +121,8 @@ class Manager(object):
             filescount += len(self.qbapi.torrentFiles(val[0]))
             alllist.append(val[0])
             alllist += val[1]
-        self.logger.info('删除种子.' + ",".join(alllist))
+        if len(alllist) != 0:
+            self.logger.info('删除种子.' + ",".join(alllist))
         if not self.qbapi.torrentsDelete(alllist, True):
             ret = False
         # 每个文件延迟0.2秒
@@ -900,10 +901,14 @@ class Manager(object):
             if getsidname(val['sid']).lower() in self.stationref:
                 # 先判断种子在不在，有可能多个站点相同的新种差不多一起下载完，那么把其他站点相同的删掉，变成辅种
                 # 正常来说这个种子是不在的，因为下载 前进行过辅种检查，新种才会有这种情况
+                # Update 下载前进行过辅种检查，但是服务器可能还没有这个新种的辅种数据，所以会导致没有辅种，当种子下载完成的时候可能就已经入数据库有辅种数据了，就跑到这里来
                 # TODO ----test
                 if self.istorrentexist(val['hash']):
-                    self.logger.warning('辅种种子竟然存在，转为辅种策略.检查看这两个种子是否为新种子' + val['hash'])
-                    self.recheckall_judge(prhash, val)
+                    self.logger.warning('辅种种子竟然存在，转为辅种策略.检查看这个种子是否为新种子' + val['hash'])
+                    if not self.recheckall_judge(prhash, val):
+                        # 当val不是正在下载的种子的时候，说明这个种子之前就存在，把现在这个删掉重新辅种即可
+                        if self.addreseedbyhash(prname, prid, prhash, val):
+                            break
                 else:
                     rspstream, rspres = self.stationref[getsidname(val['sid']).lower()].getdownloadbypsk(
                         str(val['tid']))
@@ -911,6 +916,37 @@ class Manager(object):
                         self.addreseed(prhash, val, rspstream.content)
                     else:
                         self.logger.warning('种子下载失败，可能被删除了.' + val['hash'])
+
+    def addreseedbyhash(self, prname, prid, prhash, rsinfo):
+        self.deletetorrent(prhash, True)
+        jsonlist = {}
+        if os.path.exists(self.reseedjsonname):
+            newprhash = ''
+            with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
+                jsonlist = json.loads(f.read())
+            if rsinfo['hash'] in jsonlist:
+                newprhash = rsinfo['hash']
+            else:
+                for key, value in jsonlist.items():
+                    for val in value['rslist']:
+                        if prhash == val['hash']:
+                            newprhash = key
+                            break
+                    if newprhash != '':
+                        break
+            if newprhash == '':
+                return False
+            rspstream, rspres = self.stationref[prname.lower()].getdownloadbypsk(prid)
+            if rspres:
+                self.addreseed(newprhash, {
+                    'hash': prhash,
+                    'tid': prid,
+                    'sid': getnamesid(prname)
+                }, rspstream.content)
+            else:
+                self.logger.warning('种子下载失败，可能被删除了.' + rsinfo['hash'])
+            return True
+        return False
 
     def addrstopritlist(self, rsname, rsid, rshash, prhash):
         if os.path.exists(self.reseedjsonname):
@@ -1154,6 +1190,8 @@ class Manager(object):
                 self.addreseed(prihash, rsinfo, rspstream.content)
             else:
                 self.logger.warning('种子下载失败，可能被删除了.' + rsinfo['hash'])
+            return True
+        return False
 
     def checkdltorrenttime(self, dline):
         ret = False
