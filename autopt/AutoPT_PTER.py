@@ -74,10 +74,11 @@ class AutoPT_PTER(AutoPT.AutoPT):
                 else:
                     self.logger.warning(info.json()['data'])
                     self.logger.warning(info.json()['message'])
-                    self.logger.error('签到失败')
+                    self.logger.error('签到失败,未知原因')
         except BaseException as e:
-            self.logger.error('签到失败')
-            self.logger.exception(traceback.format_exc())
+            self.logger.error('签到失败,发生异常')
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
 
     @property
     def pages(self):
@@ -108,8 +109,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
-
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
         if not gl.get_value('thread_flag'):
             return
 
@@ -126,8 +127,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
-
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
         if not gl.get_value('thread_flag'):
             return
 
@@ -144,8 +145,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
-
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
         if not gl.get_value('thread_flag'):
             return
 
@@ -162,7 +163,8 @@ class AutoPT_PTER(AutoPT.AutoPT):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 

@@ -34,10 +34,10 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
                     if rsptext is not None:
                         self.logger.info(rsptext)
                     else:
-                        self.logger.error('签到失败')
+                        self.logger.error('签到失败,未知原因')
         except BaseException as e:
-            self.logger.error('签到失败')
-            self.logger.exception(traceback.format_exc())
+            self.logger.error('签到失败,发生异常')
+            self.logger.debug(e)
 
     @property
     def pages(self):
@@ -71,7 +71,8 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 

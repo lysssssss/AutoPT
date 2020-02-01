@@ -78,8 +78,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                     time.sleep(10)
 
             except BaseException as e:
+                trytime += 1
                 self.logger.error('Download Fail trytime = ' + str(trytime))
-                self.logger.exception(traceback.format_exc())
+                # self.logger.exception(traceback.format_exc())
+                self.logger.debug(e)
         return req
 
     @property
@@ -109,7 +111,8 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         if not gl.get_value('thread_flag'):
@@ -136,7 +139,8 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         if not gl.get_value('thread_flag'):
@@ -163,7 +167,8 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                 else:
                     n -= 1
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
+            # self.logger.exception(traceback.format_exc())
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 

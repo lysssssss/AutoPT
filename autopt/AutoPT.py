@@ -221,7 +221,8 @@ class AutoPT(ABC):
                 self.logger.error('Download Error:')
 
         except BaseException as e:
-            self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
+            # self.logger.exception(traceback.format_exc())
 
     def getdownload(self, id_):
         """Download torrent in url
@@ -244,7 +245,8 @@ class AutoPT(ABC):
             except BaseException as e:
                 self.logger.error('Download Fail trytime = ' + str(trytime))
                 trytime += 1
-                self.logger.exception(traceback.format_exc())
+                # self.logger.exception(traceback.format_exc())
+                self.logger.debug(e)
         return req
 
     def getdownloadbypsk(self, id_):
@@ -275,7 +277,8 @@ class AutoPT(ABC):
             except BaseException as e:
                 self.logger.error('Download Fail trytime = ' + str(trytime))
                 trytime += 1
-                self.logger.exception(traceback.format_exc())
+                # self.logger.exception(traceback.format_exc())
+                self.logger.debug(e)
         return req, False
 
     def readwebagent(self):
