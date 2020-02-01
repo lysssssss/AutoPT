@@ -39,26 +39,40 @@ class AutoPT_TJU(AutoPT.AutoPT):
         return True
 
     def judgetorrentok(self, page):
-        if page.futherstamp != -1:
-            if page.size < 32:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
+        if page.method == 0:
+            if page.futherstamp != -1:
+                if page.size < 32:
+                    return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
+                else:
+                    return page.ipv6 == 'conn-yes' and (
+                                page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
             else:
-                return page.ipv6 == 'conn-yes' and (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
-        else:
-            if page.size < 32:
-                return page.seeders < 13
+                if page.size < 32:
+                    return page.seeders < 13
+                else:
+                    return page.ipv6 == 'conn-yes' and page.seeders < 13
+        elif page.method == 1:
+            if page.futherstamp != -1:
+                if page.size < 32:
+                    return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
+                else:
+                    return page.ipv6 == 'conn-yes' and (
+                                page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
             else:
-                return page.ipv6 == 'conn-yes' and page.seeders < 13
+                if page.size < 32:
+                    return page.seeders < 20
+                else:
+                    return page.ipv6 == 'conn-yes' and page.seeders < 20
 
 
 class AutoPT_Page_TJU(AutoPT.AutoPT_Page):
     """Torrent Page Info"""
 
-    def __init__(self, soup):
+    def __init__(self, soup, method=0):
         """Init variables
         :soup: Soup
         """
-        super(AutoPT_Page_TJU, self).__init__(soup)
+        super(AutoPT_Page_TJU, self).__init__(soup, method)
         try:
             self.lefttime = [tmp_span.text for tmp_span
                              in BeautifulSoup(str(soup.find(class_='torrentname')), 'lxml').find_all('span')
@@ -90,4 +104,7 @@ class AutoPT_Page_TJU(AutoPT.AutoPT_Page):
             self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
                 self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
         # 判断self.seeders > 0 因为没人做种时无法知道此种子的连接性如何, 等待有人做种
-        return self.size < 256 and self.seeders > 0
+        if self.method == 0:
+            return self.size < 256 and self.seeders > 0
+        elif self.method == 1:
+            return self.size < 512 and self.seeders > 0

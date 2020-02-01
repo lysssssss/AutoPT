@@ -126,7 +126,7 @@ class AutoPT(ABC):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    yield self.autoptpage(line)
+                    yield self.autoptpage(line, 1)
                     n = 1
                 else:
                     n -= 1
@@ -189,8 +189,8 @@ class AutoPT(ABC):
                     if not gl.get_value('thread_flag'):
                         continue
                     if page.id not in self.list and page.ok:
-                        # page.ok为硬性条件,不会变的状态添加到硬条件里
-                        # 以下方法为软条件, 例如种子连接数, 类型, 剩余free时间等等属于变化的条件都为软条件
+                        # page.ok为第一次筛选，不符合条件的会再次检查
+                        # 下面方法为第二次筛选，不符合条件的下次不会再检查
                         # 不符合条件的就不下载,直接添加到csv里
                         if not self.judgetorrentok(page):
                             self.pageinfotocsv(f, page)
@@ -300,12 +300,12 @@ class AutoPT(ABC):
 class AutoPT_Page(object):
     """Torrent Page Info"""
 
-    def __init__(self, soup):
+    def __init__(self, soup, method=0):
         """Init variables
         :soup: Soup
         """
         self.logger = gl.get_value('logger').logger
-
+        self.method = method
         url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
         self.type = soup.img['title']
@@ -327,7 +327,10 @@ class AutoPT_Page(object):
         self.logger.info(self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(
             self.size) + 'GB,' + str(self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(
             self.lefttime))
-        return self.size < 2048
+        if self.method == 0:
+            return self.size < 128 and self.seeders > 0
+        elif self.method == 1:
+            return self.size < 256 and self.seeders > 0
 
     def tosize(self, text):
         """Convert text 'xxxGB' to int size

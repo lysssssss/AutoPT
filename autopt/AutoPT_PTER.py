@@ -57,10 +57,16 @@ class AutoPT_PTER(AutoPT.AutoPT):
         return True
 
     def judgetorrentok(self, page):
-        if page.futherstamp != -1:
-            return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
-        else:
-            return page.seeders < 13
+        if page.method == 0:
+            if page.futherstamp != -1:
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 10
+            else:
+                return page.seeders < 10
+        elif page.method == 1:
+            if page.futherstamp != -1:
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 100
+            else:
+                return page.seeders < 100
 
     def attendance(self, page):
         try:
@@ -140,7 +146,7 @@ class AutoPT_PTER(AutoPT.AutoPT):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    yield self.autoptpage(line)
+                    yield self.autoptpage(line, 1)
                     n = 1
                 else:
                     n -= 1
@@ -172,11 +178,11 @@ class AutoPT_PTER(AutoPT.AutoPT):
 class AutoPT_Page_PTER(AutoPT.AutoPT_Page):
     """Torrent Page Info"""
 
-    def __init__(self, soup):
+    def __init__(self, soup, method=0):
         """Init variables
         :soup: Soup
         """
-        super(AutoPT_Page_PTER, self).__init__(soup)
+        super(AutoPT_Page_PTER, self).__init__(soup, method)
         try:
             # 注意，字符串中间这个不是空格
             if self.name.endswith('[email protected]'):
@@ -204,4 +210,7 @@ class AutoPT_Page_PTER(AutoPT.AutoPT_Page):
         self.logger.info(
             self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
                 self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
-        return self.size < 128
+        if self.method == 0:
+            return self.size < 128 and self.seeders > 0
+        elif self.method == 1:
+            return self.size < 256 and self.seeders > 0

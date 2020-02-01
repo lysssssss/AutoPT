@@ -16,10 +16,16 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
         self.autoptpage = AutoPT_Page_PTHOME
 
     def judgetorrentok(self, page):
-        if page.futherstamp != -1:
-            return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
-        else:
-            return page.seeders < 20
+        if page.method == 0:
+            if page.futherstamp != -1:
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
+            else:
+                return page.seeders < 20
+        elif page.method == 1:
+            if page.futherstamp != -1:
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 200
+            else:
+                return page.seeders < 200
 
     def attendance(self, page):
         try:
@@ -63,8 +69,11 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    if (line.find('img', class_='pro_free') is not None or
-                        line.find('img', class_='pro_free2up') is not None) and \
+                    if line.find('img', class_='pro_free2up') is not None and \
+                            line.find('img', class_='hitandrun') is None:
+                        yield self.autoptpage(line, 1)
+                        n = 1
+                    elif line.find('img', class_='pro_free') is not None and \
                             line.find('img', class_='hitandrun') is None:
                         yield self.autoptpage(line)
                         n = 1
@@ -80,11 +89,12 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
 class AutoPT_Page_PTHOME(AutoPT.AutoPT_Page):
     """Torrent Page Info"""
 
-    def __init__(self, soup):
+    def __init__(self, soup, method=0):
         """Init variables
         :soup: Soup
         """
         self.logger = gl.get_value('logger').logger
+        self.method = method
         self.url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
         self.type = soup.img['title']
@@ -122,4 +132,7 @@ class AutoPT_Page_PTHOME(AutoPT.AutoPT_Page):
         self.logger.info(
             self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
                 self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
-        return self.size < 128
+        if self.method == 0:
+            return self.size < 128 and self.seeders > 0
+        elif self.method == 1:
+            return self.size < 256 and self.seeders > 0

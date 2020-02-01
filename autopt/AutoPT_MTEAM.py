@@ -54,10 +54,21 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
         return False
 
     def judgetorrentok(self, page):
-        if page.futherstamp != -1:
-            return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 200
-        else:
-            return page.seeders < 200
+        if page.method == 0:
+            if page.futherstamp != -1:
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 200
+            else:
+                return page.seeders < 200
+        elif page.method == 1:
+            if page.futherstamp != -1:
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 400
+            else:
+                return page.seeders < 400
+        elif page.meethod == 2:
+            if page.futherstamp != -1:
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 600
+            else:
+                return page.seeders < 600
 
     def getdownload(self, id_):
         """Download torrent in url
@@ -104,8 +115,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    if line.find('img', class_='pro_free') is not None or \
-                            line.find('img', class_='pro_free2up') is not None:
+                    if line.find('img', class_='pro_free2up') is not None:
+                        yield self.autoptpage(line, 1)
+                        n = 1
+                    if line.find('img', class_='pro_free') is not None:
                         yield self.autoptpage(line)
                         n = 1
                 else:
@@ -132,9 +145,11 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    if line.find('img', class_='pro_free') is not None or \
-                            line.find('img',class_='pro_free2up') is not None:
-                        yield self.autoptpage(line, 1)
+                    if line.find('img', class_='pro_free2up') is not None:
+                        yield self.autoptpage(line, 2)
+                        n = 1
+                    if line.find('img', class_='pro_free') is not None:
+                        yield self.autoptpage(line, 2)
                         n = 1
                 else:
                     n -= 1
@@ -160,8 +175,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    if line.find('img', class_='pro_free') is not None or \
-                            line.find('img',class_='pro_free2up') is not None:
+                    if line.find('img', class_='pro_free2up') is not None:
+                        yield self.autoptpage(line, 1)
+                        n = 1
+                    if line.find('img', class_='pro_free') is not None:
                         yield self.autoptpage(line)
                         n = 1
                 else:
@@ -251,6 +268,8 @@ class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
             + str(self.size) + 'GB,' + str(self.seeders) + ',' + str(self.leechers)
             + ',' + str(self.snatched) + ',' + str(self.lefttime))
         if self.method == 0:
-            return self.size < 128
+            return self.size < 128 and self.seeders > 0
         elif self.method == 1:
-            return self.size < 512
+            return self.size < 256 and self.seeders > 0
+        elif self.method == 2:
+            return self.size < 512 and self.seeders > 0
