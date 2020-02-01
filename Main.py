@@ -4,13 +4,13 @@ import traceback
 from threading import Thread
 
 import psutil
+
 from autopt.AutoPT_BYR import AutoPT_BYR
 from autopt.AutoPT_MTEAM import AutoPT_MTEAM
 from autopt.AutoPT_PTER import AutoPT_PTER
 from autopt.AutoPT_PTHOME import AutoPT_PTHOME
 from autopt.AutoPT_TJU import AutoPT_TJU
 from autopt.QBmanage_Reseed import Manager
-
 from tools import Myconfig, Mylogger, BGIcon
 from tools import globalvar as gl
 
@@ -76,10 +76,11 @@ def run():
 
         counttime = 0
         while gl.get_value('thread_flag'):
-            if gl.get_value('config').switch('reseed') and counttime % 300 == 0:
+            if gl.get_value('config').switch('reseed') and counttime % 120 == 0:
                 manager.recheck()
-            if gl.get_value('config').switch('reseed') and counttime % (6 * 3600) == (6 * 3600 -1):
+            if gl.get_value('config').switch('reseed') and counttime % (6 * 3600) == 0:
                 manager.recheckall()
+                manager.checkemptydir()
             if gl.get_value('thread_flag') and gl.get_value('config').switch('pthome') and counttime % gl.get_value(
                     'config').intervaltime('pthome') == 0:
                 auto_pthome.start()
@@ -96,7 +97,6 @@ def run():
             if gl.get_value('thread_flag') and gl.get_value('config').switch('byr') and counttime % gl.get_value(
                     'config').intervaltime('byr') == 0:
                 auto_byr.start()
-
 
             counttime = (1 + counttime) % maxtime
             time.sleep(1)

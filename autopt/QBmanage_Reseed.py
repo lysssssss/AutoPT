@@ -7,8 +7,9 @@ import psutil
 import requests
 
 import tools.globalvar as gl
-from tools.RecheckReport import RecheckReport, RecheckAllReport
+from tools.RecheckReport import RecheckReport, RecheckAllReport, checkDirReport
 from tools.TorrentInfo import get_torrent_name
+from tools.dirmanager import getemptydirlist, deletedir
 from tools.qbapi import qbapi
 from tools.sid import supportsid, getsidname, getnamesid
 
@@ -1226,3 +1227,30 @@ class Manager(object):
                 self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '因为没有在免费时间内下载完毕')
                 ret = True
         return ret
+
+    def checkemptydir(self):
+        category = self.qbapi.category()
+        pathlist = []
+        for k, v in category.items():
+            if v['savePath'] != '':
+                pathlist.append(v['savePath'].replace('/', '\\'))
+        qbconfig = self.qbapi.getApplicationPreferences()
+        if qbconfig['save_path'] != '':
+            pathlist.append(qbconfig['save_path'])
+        pathlist2 = []
+        for val in pathlist:
+            if not val.endswith('\\'):
+                val = val + '\\'
+            pathlist2.append(val + 'ReSeed')
+        dirinfo = {
+            'emptynum': 0,
+            'notemptynum': 0,
+            'filesnum': 0,
+            'emptylist': []
+        }
+        for val in pathlist2:
+            for k, v in getemptydirlist(val).items():
+                dirinfo[k] += v
+        dirinfo['qbrsnum'] = len(self.qbapi.torrentsInfo(category=self.reseedcategory))
+        self.logger.info(checkDirReport(dirinfo))
+        deletedir(dirinfo['emptylist'])

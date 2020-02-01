@@ -74,3 +74,15 @@ class RecheckAllReport:
                '总辅种数:' + str(self.rsnum) + '.已辅种:' + str(self.yfznum) + '. 正在辅种:' + str(self.fzingnum) + \
                '. 新添加辅种:' + str(self.newfznum) + '. 成功辅种:' + str(self.succnum) + '. 失败辅种:' + str(self.failnum) + \
                '\n'
+
+
+def checkDirReport(dirinfo):
+    retstr = '\n'
+    if dirinfo['filesnum'] != 0:
+        retstr = retstr + '辅种目录里有' + str(dirinfo['filesnum']) + '个文件' + '\n'
+    retstr = retstr + '辅种目录数:' + str(dirinfo['notemptynum']) + '\n'
+    retstr = retstr + 'QB辅种数:' + str(dirinfo['qbrsnum']) + '\n'
+    if dirinfo['notemptynum'] != dirinfo['qbrsnum']:
+        retstr += '！！！辅种目录数和QB辅种数不一致！！！'
+    retstr = retstr + '清除空目录' + str(dirinfo['emptynum']) + '个' + '\n'
+    return retstr
