@@ -102,70 +102,22 @@ class AutoPT_PTER(AutoPT.AutoPT):
 
         # 监测二次验证导致的登录问题
         recheckpage = False
-        n = 0
+        n = 1
         try:
             # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_='sticky_top'):
+            for line in page.find('table', class_='torrents').find_all('tr'):
                 if n == 0:
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    yield self.autoptpage(line)
-                    n = 1
-                else:
-                    n -= 1
-        except BaseException as e:
-            # self.logger.exception(traceback.format_exc())
-            self.logger.debug(e)
-        if not gl.get_value('thread_flag'):
-            return
-
-        n = 0
-        try:
-            # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_='sticky_normal'):
-                if n == 0:
-                    if not gl.get_value('thread_flag'):
-                        return
-                    recheckpage = True
-                    yield self.autoptpage(line)
-                    n = 1
-                else:
-                    n -= 1
-        except BaseException as e:
-            # self.logger.exception(traceback.format_exc())
-            self.logger.debug(e)
-        if not gl.get_value('thread_flag'):
-            return
-
-        n = 0
-        try:
-            # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_='twoupfree_bg'):
-                if n == 0:
-                    if not gl.get_value('thread_flag'):
-                        return
-                    recheckpage = True
-                    yield self.autoptpage(line, 1)
-                    n = 1
-                else:
-                    n -= 1
-        except BaseException as e:
-            # self.logger.exception(traceback.format_exc())
-            self.logger.debug(e)
-        if not gl.get_value('thread_flag'):
-            return
-
-        n = 0
-        try:
-            # 防止网页获取失败时的异常
-            for line in page.find_all('tr', class_='free_bg'):
-                if n == 0:
-                    if not gl.get_value('thread_flag'):
-                        return
-                    recheckpage = True
-                    yield self.autoptpage(line)
-                    n = 1
+                    if line.find('img', class_='pro_free2up') is not None and \
+                            line.find('img', class_='hitandrun') is None:
+                        yield self.autoptpage(line, 1)
+                        n = 1
+                    elif line.find('img', class_='pro_free') is not None and \
+                            line.find('img', class_='hitandrun') is None:
+                        yield self.autoptpage(line)
+                        n = 1
                 else:
                     n -= 1
         except BaseException as e:
