@@ -75,7 +75,7 @@ class AutoPT_Page_TJU(AutoPT.AutoPT_Page):
         super(AutoPT_Page_TJU, self).__init__(soup, method)
         try:
             self.lefttime = [tmp_span.text for tmp_span
-                             in BeautifulSoup(str(soup.find(class_='torrentname')), 'lxml').find_all('span')
+                             in soup.find(class_='torrentname').find_all('span')
                              if self.matchlefttimestr(tmp_span.text)]
             if len(self.lefttime) == 1:
                 self.lefttime = self.lefttime[0]

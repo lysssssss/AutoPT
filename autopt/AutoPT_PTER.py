@@ -184,11 +184,8 @@ class AutoPT_Page_PTER(AutoPT.AutoPT_Page):
         """
         super(AutoPT_Page_PTER, self).__init__(soup, method)
         try:
-            # 注意，字符串中间这个不是空格
-            if self.name.endswith('[email protected]'):
-                self.name = self.name[:len('[email protected]') * -1]
             self.lefttime = [tmp_span.text for tmp_span
-                             in BeautifulSoup(str(soup.find(class_='torrentname')), 'lxml').find_all('span')
+                             in soup.find(class_='torrentname').find_all('span')
                              if self.matchlefttimestr(tmp_span.text)]
             if len(self.lefttime) == 1:
                 self.lefttime = self.lefttime[0]

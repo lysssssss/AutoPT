@@ -308,6 +308,9 @@ class AutoPT_Page(object):
         self.method = method
         url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
+        # 注意，字符串中间这个不是空格
+        if self.name.endswith('[email protected]'):
+            self.name = self.name[:len('[email protected]') * -1]
         self.type = soup.img['title']
         self.createtime = soup.find_all('td')[-6].text
         self.createtimestamp = self.totimestamp(self.createtime)

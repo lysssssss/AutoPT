@@ -110,7 +110,7 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
         n = 1
         try:
             # 防止网页获取失败时的异常
-            for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
+            for line in pages.find('table', class_='torrents').find_all('tr'):
                 if n == 0:
                     if not gl.get_value('thread_flag'):
                         return
@@ -140,7 +140,7 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
         n = 1
         try:
             # 防止网页获取失败时的异常
-            for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
+            for line in pages.find('table', class_='torrents').find_all('tr'):
                 if n == 0:
                     if not gl.get_value('thread_flag'):
                         return
@@ -170,7 +170,7 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
         n = 1
         try:
             # 防止网页获取失败时的异常
-            for line in BeautifulSoup(str(pages.find('table', class_='torrents')), 'lxml').find_all('tr'):
+            for line in pages.find('table', class_='torrents').find_all('tr'):
                 if n == 0:
                     if not gl.get_value('thread_flag'):
                         return
@@ -231,6 +231,9 @@ class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
         self.method = method
         self.url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
+        # 注意，字符串中间这个不是空格
+        if self.name.endswith('[email protected]'):
+            self.name = self.name[:len('[email protected]') * -1]
         self.type = soup.img['title']
         self.createtime = soup.find_all('td')[-7].text
         self.createtimestamp = self.totimestamp(self.createtime)
@@ -244,7 +247,7 @@ class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
             if self.name.endswith('[email protected]'):
                 self.name = self.name[:len('[email protected]') * -1]
             self.lefttime = [tmp_span.text for tmp_span
-                             in BeautifulSoup(str(soup.find(class_='torrentname')), 'lxml').find_all('span')
+                             in soup.find(class_='torrentname').find_all('span')
                              if self.matchlefttimestr(tmp_span.text)]
             if len(self.lefttime) == 1:
                 self.lefttime = self.lefttime[0][3:]

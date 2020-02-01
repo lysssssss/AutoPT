@@ -31,16 +31,15 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
         try:
             if page.find('a', href='attendance.php') is not None:
                 self.logger.info('尝试签到...')
-                info = self._session.get(self._root + 'attendance.php', timeout=(30, 30))
-                if info.status_code == 200:
-                    rsptext = None
-                    for line in BeautifulSoup(info.text, 'lxml').find_all('td', class_='text'):
-                        if '本次签到' in str(line):
-                            rsptext = str(line)
-                    if rsptext is not None:
-                        self.logger.info(rsptext)
-                    else:
-                        self.logger.error('签到失败,未知原因')
+                info = self.get_url('attendance.php')
+                rsptext = None
+                for line in info.find_all('td', class_='text'):
+                    if '本次签到' in str(line):
+                        rsptext = str(line)
+                if rsptext is not None:
+                    self.logger.info(rsptext)
+                else:
+                    self.logger.error('签到失败,未知原因')
         except BaseException as e:
             self.logger.error('签到失败,发生异常')
             self.logger.debug(e)
@@ -64,7 +63,7 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
         n = 1
         try:
             # 防止网页获取失败时的异常
-            for line in BeautifulSoup(str(page.find('table', class_='torrents')), 'lxml').find_all('tr'):
+            for line in page.find('table', class_='torrents').find_all('tr'):
                 if n == 0:
                     if not gl.get_value('thread_flag'):
                         return
@@ -97,6 +96,9 @@ class AutoPT_Page_PTHOME(AutoPT.AutoPT_Page):
         self.method = method
         self.url = soup.find(class_='torrentname').a['href']
         self.name = soup.find(class_='torrentname').b.text
+        # 注意，字符串中间这个不是空格
+        if self.name.endswith('[email protected]'):
+            self.name = self.name[:len('[email protected]') * -1]
         self.type = soup.img['title']
         self.createtime = soup.find_all('td')[-8].text
         self.createtimestamp = self.totimestamp(self.createtime)
@@ -110,7 +112,7 @@ class AutoPT_Page_PTHOME(AutoPT.AutoPT_Page):
             if self.name.endswith('[email protected]'):
                 self.name = self.name[:len('[email protected]') * -1]
             self.lefttime = [tmp_span.text for tmp_span
-                             in BeautifulSoup(str(soup.find(class_='torrentname')), 'lxml').find_all('span')
+                             in soup.find(class_='torrentname').find_all('span')
                              if self.matchlefttimestr(tmp_span.text)]
             if len(self.lefttime) == 1:
                 self.lefttime = self.lefttime[0]
