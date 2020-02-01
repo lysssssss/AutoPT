@@ -64,7 +64,7 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                 return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 400
             else:
                 return page.seeders < 400
-        elif page.meethod == 2:
+        elif page.method == 2:
             if page.futherstamp != -1:
                 return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 600
             else:
@@ -216,7 +216,8 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             except BaseException as e:
                 self.logger.error('Download Fail trytime = ' + str(trytime))
                 trytime += 1
-                self.logger.exception(traceback.format_exc())
+                #self.logger.exception(traceback.format_exc())
+                self.logger.debug(e)
         return req, False
 
 
