@@ -35,11 +35,12 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
                 for line in info.find_all('td', class_='text'):
                     if '本次签到' in str(line):
                         self.logger.info(line.text)
-                else:
-                    self.logger.error('签到失败,未知原因')
+                        return True
+                self.logger.error('签到失败,未知原因')
         except BaseException as e:
             self.logger.error('签到失败,发生异常')
             self.logger.debug(e)
+        return False
 
     @property
     def pages(self):
