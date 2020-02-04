@@ -13,6 +13,7 @@ from autopt.AutoPT_TJU import AutoPT_TJU
 from autopt.QBmanage_Reseed import Manager
 from tools import Myconfig, Mylogger, BGIcon
 from tools import globalvar as gl
+from tools.iyuu import iyuu
 
 
 def run():
@@ -146,6 +147,7 @@ if __name__ == '__main__':
     try:
         gl.set_value('config', Myconfig.Config())
         gl.set_value('logger', Mylogger.Mylogger())
+        gl.set_value('wechat', iyuu(gl.get_value('config').token))
         gl.set_value('thread', Thread(target=run))
         app = BGIcon.MyWindows()
         gl.set_value('wxpython', app)

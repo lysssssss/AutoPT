@@ -257,6 +257,7 @@ class MyWindows(wx.App):
             # time.sleep(1)
             wx.CallLater(1000, self.checkptthread)
         else:
+            gl.get_value('wechat').send(text='AutoPT运行出错，已停止')
             self.logger.info('检测到线程关闭，异常退出')
             self.frame.Show()
             wx.MessageBox('检测到异常线程关闭', "AutoPT")
