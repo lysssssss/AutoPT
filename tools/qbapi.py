@@ -42,6 +42,12 @@ class qbapi:
                 trytime -= 1
                 time.sleep(5)
 
+    def webapiVersion(self):
+        info = self.get_url('/api/v2/app/webapiVersion')
+        if info.status_code == 200:
+            return info.content.decode()
+        return ''
+
     def setCategory(self, thash, ctn):
         if isinstance(thash, list):
             thash = "|".join(thash)

@@ -31,6 +31,10 @@ class Manager(object):
         self._session.headers = {
             'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 Chrome/79.0.3945.16 Safari/537.36 Edg/79.0.309.11'
         }
+        apiversion = self.qbapi.webapiVersion().strip()
+        if apiversion not in ['2.2.0', '2.2.1']:
+            self.logger.warning('不支持的qb api版本' + apiversion)
+            exit(7)
 
         if config is not None and config['name'] != 'reseed':
             self.config = config
@@ -258,7 +262,9 @@ class Manager(object):
         if len(tinfo) == 0:
             self.logger.debug('Cannot find torrent' + thash + '. Maybe already deleted')
             return False
-        if tinfo['completion_on'] == 4294967295:
+        # api 2.3 4294967295
+        # api 2.4 -28800
+        if tinfo['completion_on'] == 4294967295 or tinfo['completion_on'] < 0:
             return False
         else:
             return True
@@ -475,8 +481,10 @@ class Manager(object):
         #     return
         if len(content) == 0:
             self.logger.error('路径为空，创建失败')
+        for idx, val in enumerate(content):
+            content[idx]['name'] = content[idx]['name'].replace('/', '\\')
         # 判断\\防止目录+单文件形式
-        if len(content) == 1 and (not '\\' in content[0]['name']):
+        if len(content) == 1 and (not '/' in content[0]['name']):
             os.makedirs('\\\\?\\' + dst, exist_ok=True)
             try:
                 os.link('\\\\?\\' + srcpath + content[0]['name'], '\\\\?\\' + dst + '\\' + name)
@@ -496,7 +504,8 @@ class Manager(object):
                 dirname, basename = os.path.split(val['name'])
                 os.makedirs('\\\\?\\' + dst + dirname[srcnamelen:], exist_ok=True)
                 try:
-                    os.link('\\\\?\\' + srcpath + val['name'], '\\\\?\\' + dst + dirname[srcnamelen:] + '\\' + basename)
+                    os.link('\\\\?\\' + srcpath + val['name'],
+                            '\\\\?\\' + dst + dirname[srcnamelen:] + '\\' + basename)
                 except FileExistsError as e:
                     self.logger.warning(e)
                 except FileNotFoundError as e:
