@@ -301,7 +301,7 @@ class Manager(object):
         # self.logger.debug('torrent category:' + tcategory)
 
     def checktorrenttracker(self, thash):
-        trackers = self.qbapi.torrentTrackers(thash)
+        trackers = [val['url'] for val in self.qbapi.torrentTrackers(thash) if val['status'] != 0]
         for val in trackers:
             if val.find('https') != 0 and val.find('http') == 0:
                 new = val[:4] + 's' + val[4:]
@@ -373,7 +373,7 @@ class Manager(object):
         return ret
 
     def removematchtracker(self, thash, trackerstr):
-        trackerlist = self.qbapi.torrentTrackers(thash)
+        trackerlist = [val['url'] for val in self.qbapi.torrentTrackers(thash) if val['status'] != 0]
         for val in trackerlist:
             if trackerstr in val:
                 self.qbapi.removeTrackers(thash, val)
@@ -787,6 +787,8 @@ class Manager(object):
                     return True
                 else:
                     self.recheckreport.dling += 1
+                    if self.checkdltorrenttrakcer(rct):
+                        return True
                     return self.checkdltorrenttime(rct)
             else:
                 self.recheckreport.dlmiss += 1
@@ -1136,7 +1138,7 @@ class Manager(object):
                 self.recheckallreport.availablenum += 1
             for val in value['torrent']:
                 self.recheckallreport.rsnum += 1
-                self.logger.info('检查辅种' + val['hash'] + ',tid:' + str(val['tid']) + ',sid:' + str(val['sid']))
+                self.logger.info('检查辅种.' + val['hash'] + ',tid:' + str(val['tid']) + ',sid:' + str(val['sid']))
                 if val['hash'] in reseedalllist:
                     self.recheckallreport.yfznum += 1
                     continue
@@ -1233,7 +1235,7 @@ class Manager(object):
                 ret = False
             else:
                 self.deletetorrent(dline[3])
-                self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '因为没有在免费时间内下载完毕')
+                self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '因为没有在免费时间内下载完毕.')
                 ret = True
         return ret
 
@@ -1263,3 +1265,17 @@ class Manager(object):
         dirinfo['qbrsnum'] = len(self.qbapi.torrentsInfo(category=self.reseedcategory))
         self.logger.info(checkDirReport(dirinfo))
         deletedir(dirinfo['emptylist'])
+
+    def checkdltorrenttrakcer(self, dline):
+        # ----test
+        info = self.qbapi.torrentTrackers(dline[3])
+        for val in info:
+            if val['status'] == 0:
+                continue
+            for i in ['not registered', '被删除']:
+                if i in val['msg']:
+                    gl.get_value('wechat').send(text='程序断点提醒---种子被删除测试')
+                    self.deletetorrent(dline[3])
+                    self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '因为'+val['msg'])
+                    return True
+        return False

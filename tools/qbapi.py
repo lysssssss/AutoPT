@@ -104,13 +104,13 @@ class qbapi:
     def torrentTrackers(self, thash):
         info = self.get_url('/api/v2/torrents/trackers?hash=' + thash)
         if info.status_code == 200:
-            listjs = info.json()
-            tracker = [val['url'] for val in listjs if val['status'] != 0]
+            # listjs = info.json()
+            # tracker = [val['url'] for val in listjs if val['status'] != 0]
             # self.logger.debug('tracker:' + '\n'.join(tracker))
-            return tracker
+            return info.json()
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
-            return []
+        return []
 
     def removeTrackers(self, thash, trackerurl):
         info = self.get_url('/api/v2/torrents/removeTrackers?hash=' + thash + '&urls=' + trackerurl)

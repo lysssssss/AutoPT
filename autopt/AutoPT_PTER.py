@@ -76,7 +76,6 @@ class AutoPT_PTER(AutoPT.AutoPT):
                 if info.json()['status'] == '1':
                     #  self.logger.info(info.json()['data'])
                     self.logger.info(BeautifulSoup(info.json()['message'], 'lxml').text)
-                    self.logger.info('签到成功')
                 else:
                     self.logger.warning(info.json()['data'])
                     self.logger.warning(info.json()['message'])
