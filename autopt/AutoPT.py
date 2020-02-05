@@ -362,7 +362,7 @@ class AutoPT_Page(object):
         now = datetime.datetime.now()
         futhertime = now
         if '年' in strt:
-            futhertime += datetime.timedelta(days=int(strt[:strt.find('年')]) * 365)  # 算30天，应该够一个种子下载完成
+            futhertime += datetime.timedelta(days=int(strt[:strt.find('年')]) * 365)  # 算365天，应该够一个种子下载完成
             strt = strt[strt.find('年') + 1:]
         if '月' in strt:
             futhertime += datetime.timedelta(days=int(strt[:strt.find('月')]) * 30)  # 算30天，应该够一个种子下载完成
@@ -391,8 +391,10 @@ class AutoPT_Page(object):
         return time.mktime(futhertime.timetuple())
 
     def matchlefttimestr(self, strt):
-        return '天' in strt or '时' in strt or '分' in strt or '秒' in strt or '月' in strt \
-               or '日' in strt or '時' or '年' in strt
+        for val in ['天', '时', '分', '秒', '月', '日', '時', '年']:
+            if val in strt:
+                return True
+        return False
 
     def totimestamp(self, strt):
         stamp = 0
