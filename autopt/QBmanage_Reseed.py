@@ -128,7 +128,7 @@ class Manager(object):
             alllist += val[1]
         if len(alllist) != 0:
             self.logger.info('删除种子.' + ",".join(alllist))
-        if not self.qbapi.torrentsDelete(alllist, True):
+        if not self.qbapi.torrentsDelete(alllist, deleteFiles):
             ret = False
         # 每个文件延迟0.2秒
         time.sleep(filescount / 5)
@@ -458,17 +458,18 @@ class Manager(object):
                         del newinfo['info']['status']
                         newinfo['rslist'] = rslist
                         jsonlist[thash] = newinfo
+                        # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
+                        self.changerstcategory(rsca, {'hash': thash}, rtcategory=category)
+
                         with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
                             f.write(json.dumps(jsonlist))
-                        # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
-                        sec_rsca = self.qbapi.torrentInfo(thash)
-                        self.changerstcategory(rsca, sec_rsca, rtcategory=category)
                 else:
-                    self.logger.error('没找找到种子，出问题了')
+                    #不能找到的话有可能是刚刚添加进去的辅种，还没有录入json里
+                    # self.logger.error('没找找到种子信息，出问题了')
                     exit(6)
             else:
-                self.logger.error('疑似人为操作,程序退出！')
-                exit(5)
+                self.logger.error('此种子已是主种')
+                # exit(5)
         elif rsca['category'] in self.dlcategory:
             self.logger.debug('此种子已在下载目录！')
         else:
@@ -787,7 +788,10 @@ class Manager(object):
                     return True
                 else:
                     self.recheckreport.dling += 1
-                    if self.checkdltorrenttrakcer(rct):
+                    if self.checktorrenttrakcer(rct[3]):
+                        self.logger.info(rct[0] + ':删除' + rct[3] + ',' + rct[1] + '因为种子被站点删除')
+                        gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
+                        self.deletetorrent(rct[3])
                         return True
                     return self.checkdltorrenttime(rct)
             else:
@@ -846,7 +850,6 @@ class Manager(object):
                     # 正常应该找不到，因为这是新种子，辅种信息里没有这个种子的
                     temp = idx
                     break
-
             # 若有主，主是否在下载目录，如果是，则转换，如果不是，则此种子已经为辅，不必换
             rsca = self.qbapi.torrentInfo(prihash)
             if rsca['category'] in self.dlcategory or rsca['category'] == self.reseedcategory:
@@ -881,13 +884,11 @@ class Manager(object):
                     rslist.append(origininfo)
                     newinfo['rslist'] = rslist
                     jsonlist[rehash] = newinfo
+                self.changerstcategory(rsca, {'hash': rehash}, rtstationname=rsname)
                 with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
                     f.write(json.dumps(jsonlist))
                 # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
-                sec_rsca = self.qbapi.torrentInfo(rehash)
-                self.changerstcategory(rsca, sec_rsca, rtstationname=rsname)
         else:
-            rsca = self.qbapi.torrentInfo(prihash)
             jsonlist[rehash] = {
                 'info': {
                     'hash': rehash,
@@ -903,11 +904,10 @@ class Manager(object):
                     'status': 1
                 }]
             }
+            self.changerstcategory({'hash': prihash}, {'hash': rehash}, rtstationname=rsname)
             with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
                 f.write(json.dumps(jsonlist))
             # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
-            sec_rsca = self.qbapi.torrentInfo(rehash)
-            self.changerstcategory(rsca, sec_rsca, rtstationname=rsname)
 
     def addactivereseed(self, prname, prid, prhash, inquery):
         # 如果在辅种目录说明前面重新辅种了这个种子，从下载状态变换到辅种状态了，跳过即可
@@ -1235,11 +1235,23 @@ class Manager(object):
                 ret = False
             else:
                 self.deletetorrent(dline[3])
-                self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '因为没有在免费时间内下载完毕.')
+                self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '.因为没有在免费时间内下载完毕.')
+                ret = True
+        if float(dline[4]) == -1:
+            # 避免种子下载时间太久浪费资源，使用简单的算法
+            tinfo = self.qbapi.torrentInfo(dline[3])
+            # 算500k每秒 需要的下载时间秒
+            dllmtime = tinfo['size'] / (500 * 1024)
+            # 再预留一天的时间 但如果现在有下载速度大于100k则不删除
+            if time.time() > tinfo['added_on'] + 86400 + dllmtime and tinfo['dlspeed'] < (100 * 1024):
+                gl.get_value('wechat').send(text='程序断点提醒---种子超出最大下载时间测试')
+                self.deletetorrent(dline[3])
+                self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '.因为超出最大下载时间.')
                 ret = True
         return ret
 
     def checkemptydir(self):
+        self.logger.info('检查空文件夹中...')
         category = self.qbapi.category()
         pathlist = []
         for k, v in category.items():
@@ -1266,16 +1278,68 @@ class Manager(object):
         self.logger.info(checkDirReport(dirinfo))
         deletedir(dirinfo['emptylist'])
 
-    def checkdltorrenttrakcer(self, dline):
+    def checktorrenttrakcer(self, thash):
         # ----test
-        info = self.qbapi.torrentTrackers(dline[3])
+        info = self.qbapi.torrentTrackers(thash)
         for val in info:
             if val['status'] == 0:
                 continue
             for i in ['not registered', '被删除']:
                 if i in val['msg']:
-                    gl.get_value('wechat').send(text='程序断点提醒---种子被删除测试')
-                    self.deletetorrent(dline[3])
-                    self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '因为'+val['msg'])
                     return True
         return False
+
+    def checkprttracker(self):
+        if not os.path.exists(self.reseedjsonname):
+            return
+        jsonlist = {}
+        with open(self.reseedjsonname, encoding='utf-8')as f:
+            jsonlist = json.loads(f.read())
+        for k, v in jsonlist.items():
+            if not self.checktorrenttrakcer(k):
+                continue
+            if len(v['rslist']) == 0:
+                self.logger.info('删除主种'+k+'.因为种子被站点删除，并且没有辅种信息')
+                self.deletetorrent(k)
+                continue
+            rsinfo = None
+            for val in v['rslist']:
+                if val['sname'] != '' and val['status'] != 2 and not self.checktorrenttrakcer(val['hash']):
+                    rsinfo = val
+                    break
+            if rsinfo is None:
+                gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
+                self.logger.info('删除主种' + k + '.因为种子被站点删除，并且辅种信息都是校验失败或都已被站点删除')
+                self.deletetorrent(k)
+                continue
+            self.logger.info('交换主种' + k + '与辅种'+rsinfo['hash']+'次序，因为主种被站点删除')
+            self.inctpriority3(rsinfo, k)
+
+    def inctpriority3(self, rsinfo, prihash):
+        jsonlist = {}
+        # 在则检查主辅，
+        with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
+            jsonlist = json.loads(f.read())
+        temp = None
+        if prihash in jsonlist:
+            for idx, val in enumerate(jsonlist[prihash]['rslist']):
+                if val['hash'] == rsinfo['hash']:
+                    temp = idx
+                    break
+        if temp is not None:
+            listinfo = jsonlist[prihash]
+            del jsonlist[prihash]
+            origininfo = listinfo['info']
+            origininfo['status'] = 1
+            rslist = listinfo['rslist']
+            newinfo = {}
+            newinfo['info'] = rslist[temp]
+            del rslist[temp]
+            rslist.append(origininfo)
+            del newinfo['info']['status']
+            newinfo['rslist'] = rslist
+            jsonlist[rsinfo['hash']] = newinfo
+
+            self.changerstcategory({'hash': prihash}, rsinfo, rtstationname=rsinfo['sname'])
+            with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
+                f.write(json.dumps(jsonlist))

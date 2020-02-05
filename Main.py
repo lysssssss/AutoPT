@@ -79,7 +79,8 @@ def run():
         while gl.get_value('thread_flag'):
             if gl.get_value('config').switch('reseed') and counttime % 120 == 0:
                 manager.recheck()
-            if gl.get_value('config').switch('reseed') and counttime % (6 * 3600) == 0:
+            if gl.get_value('config').switch('reseed') and counttime % (6 * 3600) == (6 * 3600 - 1):
+                manager.checkprttracker()
                 manager.recheckall()
                 manager.checkemptydir()
             if gl.get_value('thread_flag') and gl.get_value('config').switch('pthome') and counttime % gl.get_value(
