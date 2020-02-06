@@ -130,8 +130,8 @@ class Manager(object):
             self.logger.info('删除种子.' + ",".join(alllist))
         if not self.qbapi.torrentsDelete(alllist, deleteFiles):
             ret = False
-        # 每个文件延迟0.2秒
-        time.sleep(filescount / 5)
+        # 每个文件延迟0.3333秒
+        time.sleep(filescount / 3)
 
         jsonlist = {}
         updatefile = False
@@ -388,9 +388,12 @@ class Manager(object):
                     isincommonct = True
                     rss = {}
                     for rs in rsinfolist:
+                        # 校验失败的不用选择
+                        if rs['status'] == 2:
+                            continue
                         rsca = self.qbapi.torrentInfo(rs['hash'])
-                        if len(rsca) == 0 or not (
-                                rsca['category'] in self.dlcategory or rsca['category'] == self.reseedcategory):
+                        # 换了目录的话就跳过删除
+                        if not (rsca['category'] in self.dlcategory or rsca['category'] == self.reseedcategory):
                             isincommonct = False
                             break
                         rss[rs['hash']] = rsca
@@ -464,7 +467,7 @@ class Manager(object):
                         with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
                             f.write(json.dumps(jsonlist))
                 else:
-                    #不能找到的话有可能是刚刚添加进去的辅种，还没有录入json里
+                    # 不能找到的话有可能是刚刚添加进去的辅种，还没有录入json里
                     # self.logger.error('没找找到种子信息，出问题了')
                     exit(6)
             else:
@@ -1290,6 +1293,7 @@ class Manager(object):
         return False
 
     def checkprttracker(self):
+        self.logger.info('检查种子tracker状态中...')
         if not os.path.exists(self.reseedjsonname):
             return
         jsonlist = {}
@@ -1299,7 +1303,7 @@ class Manager(object):
             if not self.checktorrenttrakcer(k):
                 continue
             if len(v['rslist']) == 0:
-                self.logger.info('删除主种'+k+'.因为种子被站点删除，并且没有辅种信息')
+                self.logger.info('删除主种' + k + '.因为种子被站点删除，并且没有辅种信息')
                 self.deletetorrent(k)
                 continue
             rsinfo = None
@@ -1312,7 +1316,7 @@ class Manager(object):
                 self.logger.info('删除主种' + k + '.因为种子被站点删除，并且辅种信息都是校验失败或都已被站点删除')
                 self.deletetorrent(k)
                 continue
-            self.logger.info('交换主种' + k + '与辅种'+rsinfo['hash']+'次序，因为主种被站点删除')
+            self.logger.info('交换主种' + k + '与辅种' + rsinfo['hash'] + '次序，因为主种被站点删除')
             self.inctpriority3(rsinfo, k)
 
     def inctpriority3(self, rsinfo, prihash):
