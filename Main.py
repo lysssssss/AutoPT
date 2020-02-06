@@ -78,6 +78,7 @@ def run():
         counttime = 0
         while gl.get_value('thread_flag'):
             if gl.get_value('config').switch('reseed') and counttime % 120 == 0:
+                manager.checkalltorrentexist()
                 manager.recheck()
             if gl.get_value('config').switch('reseed') and counttime % (6 * 3600) == 0:
                 manager.checkprttracker()

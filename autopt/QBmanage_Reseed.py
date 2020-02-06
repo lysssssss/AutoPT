@@ -8,6 +8,7 @@ import requests
 
 import tools.globalvar as gl
 from tools.RecheckReport import RecheckReport, RecheckAllReport, checkDirReport
+from tools.ReseedInfoJson import ReseedInfoJson
 from tools.TorrentInfo import get_torrent_name
 from tools.dirmanager import getemptydirlist, deletedir
 from tools.qbapi import qbapi
@@ -315,7 +316,7 @@ class Manager(object):
             # 如果是新种或者服务器无返回结果，或者查询失败，则直接下载
             if page.createtimestamp > 1800:
                 inquery = self.inqueryreseed(thash)
-                if self.addpassivereseed(thash, inquery, content, page):
+                if self.addpassivereseed(thash, inquery, content, page.id):
                     return True
 
             # 下载分配空间
@@ -596,10 +597,9 @@ class Manager(object):
         return res
 
     # 添加被辅种时，查看有没有
-    def addpassivereseed(self, thash, rsinfos, content, page):
+    def addpassivereseed(self, thash, rsinfos, content, tid):
         if len(rsinfos) == 0:
             return False
-        case = 0
         comlist = [val for val in rsinfos if self.istorrentdlcom(val['hash'])]  # 用来检测种子是否被下载并完成
         if len(comlist) == 0:
             return False
@@ -670,10 +670,10 @@ class Manager(object):
                 change = 'f'
             with open(self.rechecklistname, 'a', encoding='UTF-8')as f:
                 f.write(self.config['name'] + ','
-                        + page.id + ','
+                        + tid + ','
                         + 'rs' + ','
                         + thash + ','
-                        + str(page.futherstamp) + ','
+                        + '-1,'
                         + change + ','
                         + ptinfo['hash'] + '\n')
             return True
@@ -717,6 +717,7 @@ class Manager(object):
             self.removematchtracker(rsinfo['hash'], 'pttrackertju.tjupt.org')
 
             self.checktorrenttracker(rsinfo['hash'])
+            ReseedInfoJson().addrstopr(prhash, rsinfo['hash'], getsidname(rsinfo['sid']), rsinfo['tid'], 0)
             with open(self.rechecklistname, 'a', encoding='UTF-8')as f:
                 f.write(getsidname(rsinfo['sid']) + ','
                         + str(rsinfo['tid']) + ','
@@ -756,22 +757,6 @@ class Manager(object):
             with open(self.rechecklistname, 'w', encoding='UTF-8') as f:
                 f.write(newstr)
 
-    def addprtorrenttofile(self, info):
-        jsonlist = {}
-        if os.path.exists(self.reseedjsonname):
-            with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
-                jsonlist = json.loads(f.read())
-            if info['hash'] in jsonlist:
-                self.logger.warning('主种之前竟然存在？修改前信息为:' + str(jsonlist[info['hash']]))
-                self.logger.warning('修改后信息为:' + str(info))
-        jsonlist[info['hash']] = {
-            'info': info,
-            'rslist': []
-        }
-        with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
-            f.write(json.dumps(jsonlist))
-        return True
-
     def rechecktorrent(self, rct):
         # 下载种子看是否下载完毕
         if rct[2] == 'dl':
@@ -779,11 +764,7 @@ class Manager(object):
             if self.istorrentexist(rct[3]):
                 if self.istorrentdlcom(rct[3]):
                     self.recheckreport.dlcom += 1
-                    self.addprtorrenttofile({
-                        'hash': rct[3],
-                        'sname': rct[0].lower(),
-                        'tid': int(rct[1]) if isinstance(rct[1], str) else rct[1]
-                    })
+                    ReseedInfoJson().addpr(rct[3], rct[0].lower(), rct[1])
                     # testOK
                     inquery = self.inqueryreseed(rct[3])
                     if self.addactivereseed(rct[0], rct[1], rct[3], inquery):
@@ -811,7 +792,8 @@ class Manager(object):
                     # testOK
                     self.recheckreport.jyfail += 1
                     self.deletetorrent(rct[3], True)
-                    self.addfailrttopritlist(rct[0], rct[1], rct[3], rct[6])
+                    ReseedInfoJson().changestatus(rct[6], rct[3], 2)
+                    # self.addfailrttopritlist(rct[0], rct[1], rct[3], rct[6])
                     return True
                 elif res == 1:
                     # 还未检查完毕
@@ -826,7 +808,8 @@ class Manager(object):
                         self.inctpriority2(rct[3], rct[0], rct[1], rct[6])
                     else:
                         # testOK
-                        self.addrstopritlist(rct[0], rct[1], rct[3], rct[6])
+                        ReseedInfoJson().changestatus(rct[6], rct[3], 1)
+                        # self.addrstopritlist(rct[0], rct[1], rct[3], rct[6])
                     self.qbapi.resumeTorrents(rct[3])
                     return True
                 elif res == -1:
@@ -887,10 +870,10 @@ class Manager(object):
                     rslist.append(origininfo)
                     newinfo['rslist'] = rslist
                     jsonlist[rehash] = newinfo
+                # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
                 self.changerstcategory(rsca, {'hash': rehash}, rtstationname=rsname)
                 with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
                     f.write(json.dumps(jsonlist))
-                # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
         else:
             jsonlist[rehash] = {
                 'info': {
@@ -916,21 +899,9 @@ class Manager(object):
         # 如果在辅种目录说明前面重新辅种了这个种子，从下载状态变换到辅种状态了，跳过即可
         if self.qbapi.torrentInfo(prhash)['category'] == self.reseedcategory:
             return
-        jsonlist = {}
-        if os.path.exists(self.reseedjsonname):
-            with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
-                jsonlist = json.loads(f.read())
-        jsonlist[prhash] = {
-            'info': {
-                'hash': prhash,
-                # 'sid': getnamesid(prname),
-                'tid': int(prid) if isinstance(prid, str) else prid,
-                'sname': prname
-            },
-            'rslist': []
-        }
-        with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
-            f.write(json.dumps(jsonlist))
+        # ReseedInfoJson().addpr(prhash, prname, prid)
+        aftercheck = []
+        _continue = True
         for val in inquery:
             if getsidname(val['sid']).lower() in self.stationref:
                 # 先判断种子在不在，有可能多个站点相同的新种差不多一起下载完，那么把其他站点相同的删掉，变成辅种
@@ -940,163 +911,36 @@ class Manager(object):
                 if self.istorrentexist(val['hash']):
                     self.logger.warning('辅种种子竟然存在，转为辅种策略.检查看这个种子是否为新种子' + val['hash'])
                     if not self.recheckall_judge(prhash, val):
-                        # 当val不是正在下载的种子的时候，说明这个种子之前就存在，把现在这个删掉重新辅种即可
+                        # 当val不是正在下载的种子的时候，说明这个种子之前就存在，把现在这个删掉重新辅种即可,这样可以避免两份空间, 原因可看上面注释
                         if self.addreseedbyhash(prname, prid, prhash, val):
+                            _continue = False
                             break
                 else:
-                    rspstream, rspres = self.stationref[getsidname(val['sid']).lower()].getdownloadbypsk(
-                        str(val['tid']))
-                    if rspres:
-                        self.addreseed(prhash, val, rspstream.content)
-                    else:
-                        self.logger.warning('种子下载失败，可能被删除了.' + val['hash'])
+                    aftercheck.append(val)
+        if _continue:
+            for val in aftercheck:
+                rspstream, rspres = self.stationref[getsidname(val['sid']).lower()].getdownloadbypsk(
+                    str(val['tid']))
+                if rspres:
+                    self.addreseed(prhash, val, rspstream.content)
+                else:
+                    self.logger.warning('种子下载失败，可能被删除了.' + val['hash'])
 
     def addreseedbyhash(self, prname, prid, prhash, rsinfo):
+        newprhash = ReseedInfoJson().findprhashbyhash(rsinfo['hash'])
+        if newprhash is None:
+            return False
         self.deletetorrent(prhash, True)
-        jsonlist = {}
-        if os.path.exists(self.reseedjsonname):
-            newprhash = ''
-            with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
-                jsonlist = json.loads(f.read())
-            if rsinfo['hash'] in jsonlist:
-                newprhash = rsinfo['hash']
-            else:
-                for key, value in jsonlist.items():
-                    for val in value['rslist']:
-                        if prhash == val['hash']:
-                            newprhash = key
-                            break
-                    if newprhash != '':
-                        break
-            if newprhash == '':
-                return False
-            rspstream, rspres = self.stationref[prname.lower()].getdownloadbypsk(prid)
-            if rspres:
-                self.addreseed(newprhash, {
-                    'hash': prhash,
-                    'tid': prid,
-                    'sid': getnamesid(prname)
-                }, rspstream.content)
-            else:
-                self.logger.warning('种子下载失败，可能被删除了.' + rsinfo['hash'])
-            return True
-        return False
-
-    def addrstopritlist(self, rsname, rsid, rshash, prhash):
-        if os.path.exists(self.reseedjsonname):
-            jsonlist = ''
-            with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
-                jsonlist = json.loads(f.read())
-            if prhash in jsonlist:
-                rslist = jsonlist[prhash]['rslist']
-                isex = False
-                isexidx = -1
-                for idx, val in enumerate(rslist):
-                    if val['hash'] == rshash:
-                        isex = True
-                        isexidx = idx
-                        break
-                if isex:
-                    self.logger.warning('代码跑到奇怪的地方了，这里不应该有这个种子的辅种信息')
-                    jsonlist[prhash]['rslist'][isexidx] = {
-                        'hash': rshash,
-                        'tid': int(rsid) if isinstance(rsid, str) else rsid,
-                        'sname': rsname,
-                        # 'sid': getnamesid(rsname),
-                        'status': 2
-                    }
-                else:
-                    # 添加辅种信息到主种
-                    rsinfo = {
-                        'hash': rshash,
-                        'tid': int(rsid) if isinstance(rsid, str) else rsid,
-                        'sname': rsname,
-                        # 'sid': getnamesid(rsname),
-                        'status': 1
-                    }
-                    rslist.append(rsinfo)
-                with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
-                    f.write(json.dumps(jsonlist))
-            else:
-                self.logger.warning('json里没有主种信息')
-                jsonlist[prhash] = {
-                    'info': {
-                        'hash': prhash,
-                        # 'sid': getnamesid(prname),
-                        'tid': 0,
-                        'sname': ''
-                    },
-                    'rslist': [{
-                        'hash': rshash,
-                        # 'sid': getnamesid(prname),
-                        'tid': int(rsid) if isinstance(rsid, str) else rsid,
-                        'sname': rsname,
-                        'status': 1
-                    }]
-                }
-                with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
-                    f.write(json.dumps(jsonlist))
+        rspstream, rspres = self.stationref[prname.lower()].getdownloadbypsk(prid)
+        if rspres:
+            self.addreseed(newprhash, {
+                'hash': prhash,
+                'tid': prid,
+                'sid': getnamesid(prname)
+            }, rspstream.content)
         else:
-            # 辅种不应该不存在文件
-            self.logger.error('添加辅种信息怎么可能没有文件呢')
-
-    def addfailrttopritlist(self, rsname, rsid, rshash, prhash):
-        if os.path.exists(self.reseedjsonname):
-            jsonlist = ''
-            with open(self.reseedjsonname, 'r', encoding='UTF-8') as f:
-                jsonlist = json.loads(f.read())
-            if prhash in jsonlist:
-                rslist = jsonlist[prhash]['rslist']
-                isex = False
-                isexidx = -1
-                for idx, val in enumerate(rslist):
-                    if val['hash'] == rshash:
-                        isex = True
-                        isexidx = idx
-                        break
-                if isex:
-                    self.logger.warning('代码跑到奇怪的地方了，这里不应该有这个种子的辅种信息')
-                    jsonlist[prhash]['rslist'][isexidx] = {
-                        'hash': rshash,
-                        'tid': int(rsid) if isinstance(rsid, str) else rsid,
-                        'sname': rsname,
-                        # 'sid': getnamesid(rsname),
-                        'status': 2
-                    }
-                else:
-                    # 添加辅种信息到主种
-                    rsinfo = {
-                        'hash': rshash,
-                        'tid': int(rsid) if isinstance(rsid, str) else rsid,
-                        'sname': rsname,
-                        # 'sid': getnamesid(rsname),
-                        'status': 2
-                    }
-                    rslist.append(rsinfo)
-                with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
-                    f.write(json.dumps(jsonlist))
-            else:
-                self.logger.warning('json里没有主种信息')
-                jsonlist[prhash] = {
-                    'info': {
-                        'hash': prhash,
-                        # 'sid': getnamesid(prname),
-                        'tid': 0,
-                        'sname': ''
-                    },
-                    'rslist': [{
-                        'hash': rshash,
-                        # 'sid': getnamesid(prname),
-                        'tid': int(rsid) if isinstance(rsid, str) else rsid,
-                        'sname': rsname,
-                        'status': 2
-                    }]
-                }
-                with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
-                    f.write(json.dumps(jsonlist))
-        else:
-            # 辅种不应该不存在文件
-            self.logger.error('添加辅种信息怎么可能没有文件呢')
+            self.logger.warning('种子下载失败，可能被删除了.' + rsinfo['hash'])
+        return True
 
     def recheckall(self):
         self.logger.info('检查全种子可辅种信息...')
@@ -1247,7 +1091,6 @@ class Manager(object):
             dllmtime = tinfo['size'] / (500 * 1024)
             # 再预留一天的时间 但如果现在有下载速度大于100k则不删除
             if time.time() > tinfo['added_on'] + 86400 + dllmtime and tinfo['dlspeed'] < (100 * 1024):
-                gl.get_value('wechat').send(text='程序断点提醒---种子超出最大下载时间测试')
                 self.deletetorrent(dline[3])
                 self.logger.info(dline[0] + ':删除' + dline[3] + ',' + dline[1] + '.因为超出最大下载时间.')
                 ret = True
@@ -1346,4 +1189,45 @@ class Manager(object):
 
             self.changerstcategory({'hash': prihash}, rsinfo, rtstationname=rsinfo['sname'])
             with open(self.reseedjsonname, 'w', encoding='UTF-8') as f:
+                f.write(json.dumps(jsonlist))
+
+    def checkalltorrentexist(self):
+        self.logger.info('检查种子存在状态中...')
+        if not os.path.exists(self.reseedjsonname):
+            return
+        jsonlist = {}
+        with open(self.reseedjsonname, encoding='utf-8')as f:
+            jsonlist = json.loads(f.read())
+        info = self.qbapi.torrentsInfo()
+        info = {val['hash']: val for val in info}
+        delprhash = []
+        delrsidx = {}
+        for k, v in jsonlist.items():
+            if k in info:
+                delrsidx[k] = []
+                for idx, rs in enumerate(v['rslist']):
+                    if rs['status'] == 2:
+                        continue
+                    if rs['hash'] not in info:
+                        self.logger.debug('辅种.{}.不见了删除辅种信息,主种为.{}'.format(rs['hash'], k))
+                        delrsidx[k].append(idx)
+                if len(delrsidx[k]) == 0:
+                    del delrsidx[k]
+            else:
+                self.logger.debug('主种.{}.不见了删除主辅种信息'.format(k))
+                delprhash.append(k)
+                dellist = [k]
+                for rs in v['rslist']:
+                    if rs['status'] == 2:
+                        continue
+                    dellist.append(rs['hash'])
+                self.qbapi.torrentsDelete(dellist, True)
+        if len(delrsidx) != 0 or len(delprhash) != 0:
+            gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
+            for val in delprhash:
+                del jsonlist[val]
+            for k, v in delrsidx.items():
+                for idx in v:
+                    del delrsidx[k][idx]
+            with open(self.reseedjsonname, 'w', encoding='utf-8')as f:
                 f.write(json.dumps(jsonlist))

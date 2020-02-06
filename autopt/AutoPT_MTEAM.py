@@ -56,14 +56,14 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 200
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
             else:
-                return page.seeders < 200
+                return page.seeders < 20
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 400
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 60
             else:
-                return page.seeders < 400
+                return page.seeders < 60
         elif page.method == 2:
             if page.futherstamp != -1:
                 return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 600

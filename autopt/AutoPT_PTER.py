@@ -64,9 +64,9 @@ class AutoPT_PTER(AutoPT.AutoPT):
                 return page.seeders < 10
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 100
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 30
             else:
-                return page.seeders < 100
+                return page.seeders < 30
 
     def attendance(self, page):
         try:

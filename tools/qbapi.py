@@ -169,10 +169,6 @@ class qbapi:
         info = self.get_url(
             '/api/v2/torrents/delete?hashes=' + dellist + '&deleteFiles=' + deldata)
         if info.status_code == 200:
-            # self.logger.info('deleting')
-            # 每一个文件删除0.1秒
-            # self.logger.info('delete torrent success , torrent hash =' + str(val))
-            # self.diskdelay(val[1])
             return True
         return False
 

@@ -18,14 +18,14 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 10
             else:
-                return page.seeders < 20
+                return page.seeders < 10
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 200
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 30
             else:
-                return page.seeders < 200
+                return page.seeders < 30
 
     def attendance(self, page):
         try:
