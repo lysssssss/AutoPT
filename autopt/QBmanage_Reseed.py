@@ -90,7 +90,7 @@ class Manager(object):
     def checksize(self, filesize):
         res = True
         if self.config['capacity'] != 0:
-            self.logger.info('QBAPI check filesize =' + str(filesize) + 'GB')
+            self.logger.info('Torrent Files Total Size =' + str(filesize) + 'GB')
 
             gtl = self.gettorrentlist()
             nowtotalsize, pretotalsize = self.gettotalsize(gtl)
@@ -100,7 +100,7 @@ class Manager(object):
             diskremainsize = 1048576  # 设置无穷大的磁盘大小为1PB=1024*1024GB
             if self.diskletter != '':
                 # 留出1G容量防止空间分配失败
-                diskremainsize = self.getdiskleftsize(self.diskletter) - 1 - (pretotalsize - nowtotalsize)
+                diskremainsize = self.getdiskleftsize(self.diskletter) - 10 - (pretotalsize - nowtotalsize)
                 self.logger.debug('diskremainsize =' + str(diskremainsize) + 'GB')
             self.dynamiccapacity = self.config['capacity'] \
                 if pretotalsize + diskremainsize > self.config['capacity'] else pretotalsize + diskremainsize
@@ -489,7 +489,7 @@ class Manager(object):
         for idx, val in enumerate(content):
             content[idx]['name'] = content[idx]['name'].replace('/', '\\')
         # 判断\\防止目录+单文件形式
-        if len(content) == 1 and (not '/' in content[0]['name']):
+        if len(content) == 1 and (not '\\' in content[0]['name']):
             os.makedirs('\\\\?\\' + dst, exist_ok=True)
             try:
                 os.link('\\\\?\\' + srcpath + content[0]['name'], '\\\\?\\' + dst + '\\' + name)
@@ -556,7 +556,7 @@ class Manager(object):
         trytime = 5
         while trytime > 0:
             try:
-                req = self._session.post('http://pt.iyuu.cn/api/infohash', data=data, timeout=(10, 30))
+                req = self._session.post('http://api.iyuu.cn/api/infohash', data=data, timeout=(10, 30))
                 return req
             except BaseException as e:
                 self.logger.debug(e)
@@ -566,32 +566,32 @@ class Manager(object):
     def inqueryreseed(self, thash):
         info = self.post_ressed(thash)
         res = []
+        if info is None:
+            return res
         if info.status_code == 200:
             self.logger.debug(info.text)
-            if info.text != 'null':
-
-                retmsg = {}
-                try:
-                    retmsg = json.loads(info.text)
-                except:
-                    self.logger.error('解析json字符串失败，请联系开发者')
-                if 'success' in retmsg and retmsg['success']:
-                    self.logger.error('未知错误。返回信息为）' + info.text)
-                elif 'success' in retmsg and (not retmsg['success']):
-                    self.logger.error('查询返回失败，错误信息' + retmsg['errmsg'])
-                elif len(retmsg) != 0:
-                    for val in retmsg[thash]['torrent']:
-                        # 跳过自己的种
-                        if val['info_hash'] == thash:
-                            continue
-                        if supportsid(val['sid']):
-                            res.append({
-                                'sid': val['sid'],
-                                'tid': val['torrent_id'],
-                                'hash': val['info_hash']
-                            })
-            else:
-                self.logger.debug('服务器返回null，未查询到辅种数据')
+            retmsg = {}
+            try:
+                retmsg = json.loads(info.text)
+            except:
+                self.logger.error('解析json字符串失败，请联系开发者')
+            # if 'success' in retmsg and retmsg['success']:
+            #     self.logger.error('未知错误。返回信息为）' + info.text)
+            # elif 'success' in retmsg and (not retmsg['success']):
+            #     self.logger.error('查询返回失败，错误信息' + retmsg['errmsg'])
+            if retmsg['ret'] != 200:
+                self.logger.error('未知错误。返回信息为）' + info.text)
+            elif len(retmsg['data']) != 0:
+                for val in retmsg['data'][thash]['torrent']:
+                    # 跳过自己的种
+                    if val['info_hash'] == thash:
+                        continue
+                    if supportsid(val['sid']):
+                        res.append({
+                            'sid': val['sid'],
+                            'tid': val['torrent_id'],
+                            'hash': val['info_hash']
+                        })
         else:
             self.logger.error('请求服务器失败！错误状态码:' + str(info.status_code))
         return res
@@ -705,7 +705,8 @@ class Manager(object):
             return False
 
         if self.qbapi.addNewTorrentByBin(content, paused=True, category=self.reseedcategory, autoTMM=False,
-                                         savepath=filterdstpath + 'ReSeed' + '\\' + rsinfo['hash'][:6]):
+                                         savepath=filterdstpath + 'ReSeed' + '\\' + rsinfo['hash'][:6],
+                                         skip_checking=True):
             self.logger.info('addreseed successfully info hash = ' + rsinfo['hash'])
 
             # 辅种不需要等待，因为文件本来就存在不需要分配空间
@@ -741,6 +742,7 @@ class Manager(object):
             for line in allline:
                 self.recheckreport.listlen += 1
                 rct = line.strip().split(',')
+                self.logger.debug(line)
                 if self.rechecktorrent(rct):
                     dellist.append(line)
         newstr = ''
@@ -762,22 +764,29 @@ class Manager(object):
         if rct[2] == 'dl':
             self.recheckreport.dllen += 1
             if self.istorrentexist(rct[3]):
+                # 如果在辅种目录说明前面重新辅种了这个种子，从下载状态变换到辅种状态了，跳过即可
+                if self.qbapi.torrentInfo(rct[3])['category'] == self.reseedcategory:
+                    self.recheckreport.dltors += 1
+                    return True
                 if self.istorrentdlcom(rct[3]):
                     self.recheckreport.dlcom += 1
                     ReseedInfoJson().addpr(rct[3], rct[0].lower(), rct[1])
                     # testOK
                     inquery = self.inqueryreseed(rct[3])
-                    if self.addactivereseed(rct[0], rct[1], rct[3], inquery):
-                        return True
+                    self.addactivereseed(rct[0], rct[1], rct[3], inquery)
                     return True
                 else:
-                    self.recheckreport.dling += 1
                     if self.checktorrenttrakcer(rct[3]):
                         self.logger.info(rct[0] + ':删除' + rct[3] + ',' + rct[1] + '因为种子被站点删除')
-                        gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
+                        # gl.get_value('wechat').send(text=rct[0] + ':删除' + ',' + rct[1] + '因为种子被站点删除')
                         self.deletetorrent(rct[3])
+                        self.recheckreport.dldel += 1
                         return True
-                    return self.checkdltorrenttime(rct)
+                    if self.checkdltorrenttime(rct):
+                        self.recheckreport.dlouttime += 1
+                        return True
+                    self.recheckreport.dling += 1
+                    return False
             else:
                 self.recheckreport.dlmiss += 1
                 # 种子不见了，可以删掉了
@@ -896,9 +905,6 @@ class Manager(object):
             # 由于各种种子活动状态的不确定性，容易导致移动文件卡死，大文件跨分区的话还容易浪费硬盘性能，目前解决方案为换分类不换目录
 
     def addactivereseed(self, prname, prid, prhash, inquery):
-        # 如果在辅种目录说明前面重新辅种了这个种子，从下载状态变换到辅种状态了，跳过即可
-        if self.qbapi.torrentInfo(prhash)['category'] == self.reseedcategory:
-            return
         # ReseedInfoJson().addpr(prhash, prname, prid)
         aftercheck = []
         _continue = True
@@ -912,6 +918,7 @@ class Manager(object):
                     self.logger.warning('辅种种子竟然存在，转为辅种策略.检查看这个种子是否为新种子' + val['hash'])
                     if not self.recheckall_judge(prhash, val):
                         # 当val不是正在下载的种子的时候，说明这个种子之前就存在，把现在这个删掉重新辅种即可,这样可以避免两份空间, 原因可看上面注释
+                        self.logger.debug('recheckall_judge')
                         if self.addreseedbyhash(prname, prid, prhash, val):
                             _continue = False
                             break
@@ -919,6 +926,7 @@ class Manager(object):
                     aftercheck.append(val)
         if _continue:
             for val in aftercheck:
+                self.logger.debug('aftercheck')
                 rspstream, rspres = self.stationref[getsidname(val['sid']).lower()].getdownloadbypsk(
                     str(val['tid']))
                 if rspres:
@@ -1016,32 +1024,34 @@ class Manager(object):
             return {}
         if info.status_code == 200:
             # self.logger.debug(info.text)
-            if info.text != 'null':
+            # if info.text != 'null':
 
-                retmsg = {}
-                try:
-                    retmsg = json.loads(info.text)
-                except:
-                    self.logger.error('解析json字符串失败，请联系开发者')
-                if 'success' in retmsg and retmsg['success']:
-                    self.logger.error('未知错误。返回信息为）' + info.text)
-                elif 'success' in retmsg and (not retmsg['success']):
-                    self.logger.error('查询返回失败，错误信息' + retmsg['errmsg'])
-                elif len(retmsg) != 0:
-                    for key, value in retmsg.items():
-                        res[key] = {'torrent': []}
-                        for idx, val in enumerate(value['torrent']):
-                            if not supportsid(val['sid']):
-                                continue
-                            if val['info_hash'] == key:
-                                continue
-                            res[key]['torrent'].append({
-                                'hash': val['info_hash'],
-                                'tid': val['torrent_id'],
-                                'sid': val['sid']
-                            })
-            else:
-                self.logger.debug('服务器返回null，未查询到辅种数据')
+            retmsg = {}
+            try:
+                retmsg = json.loads(info.text)
+            except:
+                self.logger.error('解析json字符串失败，请联系开发者')
+            # if 'success' in retmsg and retmsg['success']:
+            #     self.logger.error('未知错误。返回信息为）' + info.text)
+            # elif 'success' in retmsg and (not retmsg['success']):
+            #     self.logger.error('查询返回失败，错误信息' + retmsg['errmsg'])
+            if retmsg['ret'] != 200:
+                self.logger.error('未知错误。返回信息为）' + info.text)
+            elif len(retmsg['data']) != 0:
+                for key, value in retmsg['data'].items():
+                    res[key] = {'torrent': []}
+                    for idx, val in enumerate(value['torrent']):
+                        if not supportsid(val['sid']):
+                            continue
+                        if val['info_hash'] == key:
+                            continue
+                        res[key]['torrent'].append({
+                            'hash': val['info_hash'],
+                            'tid': val['torrent_id'],
+                            'sid': val['sid']
+                        })
+            # else:
+            #     self.logger.debug('服务器返回null，未查询到辅种数据')
         else:
             self.logger.error('请求服务器失败！错误状态码:' + str(info.status_code))
         return res
@@ -1063,6 +1073,7 @@ class Manager(object):
                     else:
                         newstr += line
         if updatefile:
+            # 必须先写入，否则回合addreseed里的写入冲突，导致被覆盖
             with open(self.rechecklistname, 'w', encoding='UTF-8') as f:
                 f.write(newstr)
             # 在if里，只有dl情况，并且没有下载完才需要删除并辅种，校验中的不应该进入这里
@@ -1072,6 +1083,7 @@ class Manager(object):
                 self.addreseed(prihash, rsinfo, rspstream.content)
             else:
                 self.logger.warning('种子下载失败，可能被删除了.' + rsinfo['hash'])
+
             return True
         return False
 
@@ -1210,7 +1222,7 @@ class Manager(object):
                         continue
                     if rs['hash'] not in info:
                         self.logger.debug('辅种.{}.不见了删除辅种信息,主种为.{}'.format(rs['hash'], k))
-                        delrsidx[k].append(idx)
+                        delrsidx[k].append(rs)
                 if len(delrsidx[k]) == 0:
                     del delrsidx[k]
             else:
@@ -1223,11 +1235,11 @@ class Manager(object):
                     dellist.append(rs['hash'])
                 self.qbapi.torrentsDelete(dellist, True)
         if len(delrsidx) != 0 or len(delprhash) != 0:
-            gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
+            # gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
             for val in delprhash:
                 del jsonlist[val]
             for k, v in delrsidx.items():
-                for idx in v:
-                    del delrsidx[k][idx]
+                for delv in v:
+                    jsonlist[k]['rslist'].remove(delv)
             with open(self.reseedjsonname, 'w', encoding='utf-8')as f:
                 f.write(json.dumps(jsonlist))
