@@ -10,11 +10,14 @@ class RecheckReport:
         self.dlmiss = 0
         self.jying = 0
         self.dlcom = 0
+        self.dldel = 0
+        self.dlouttime = 0
         self.listlen = 0
         self.jyfail = 0
         self.jysucc = 0
         self.dling = 0
         self.dllen = 0
+        self.dltors = 0
         self.rslen = 0
         self.rsmiss = 0
 
@@ -22,6 +25,9 @@ class RecheckReport:
         self.dlcom = 0
         self.dling = 0
         self.dlmiss = 0
+        self.dltors = 0
+        self.dldel = 0
+        self.dlouttime = 0
 
         self.listlen = 0
         self.dllen = 0
@@ -35,10 +41,11 @@ class RecheckReport:
     def __str__(self):
         return '\n' + \
                '检查种子数:' + str(self.listlen) + '\n' + \
-               '下载数' + str(self.dllen) + '(下载完成' + str(self.dlcom) + ',下载中' + str(self.dling) + ',下载丢失' + str(
-            self.dlmiss) + ')\n' + \
-               '辅种数' + str(self.rslen) + '(校验完成' + str(self.jysucc) + ',校验失败' + str(self.jyfail) + ',正在校验' + str(
-            self.jying) + ',丢失' + str(self.rsmiss) + ')\n'
+               '下载数' + str(self.dllen) + '(下载完成' + str(self.dlcom) + ',下载中' + str(self.dling) + ',转辅种' \
+               + str(self.dltors) + ',站点删除' + str(self.dldel) + ',下载超时' + str(self.dlouttime) + ',下载丢失' \
+               + str(self.dlmiss) + ')\n' + \
+               '辅种数' + str(self.rslen) + '(校验完成' + str(self.jysucc) + ',校验失败' + str(self.jyfail) + ',正在校验' \
+               + str(self.jying) + ',丢失' + str(self.rsmiss) + ')\n'
 
 
 class RecheckAllReport:
