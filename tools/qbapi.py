@@ -44,7 +44,9 @@ class qbapi:
 
     def webapiVersion(self):
         info = self.get_url('/api/v2/app/webapiVersion')
-        if info.status_code == 200:
+        if info is None:
+            pass
+        elif info.status_code == 200:
             return info.content.decode()
         return ''
 
@@ -52,7 +54,9 @@ class qbapi:
         if isinstance(thash, list):
             thash = "|".join(thash)
         info = self.get_url('/api/v2/torrents/setCategory?hashes=' + thash + '&category=' + ctn)
-        if info.status_code == 200:
+        if info is None:
+            pass
+        elif info.status_code == 200:
             self.logger.debug('成功移动种子到' + ctn)
         elif info.status_code == 409:
             self.logger.error('Category name does not exist')
@@ -65,7 +69,9 @@ class qbapi:
         b = 'true' if b else 'false'
         info = self.get_url(
             '/api/v2/torrents/setAutoManagement?hashes=' + thash + '&enable=' + b)
-        if info.status_code == 200:
+        if info is None:
+            pass
+        elif info.status_code == 200:
             # self.logger.debug('成功关闭' + thash + '自动管理')
             pass
         else:
@@ -86,35 +92,43 @@ class qbapi:
         if filter is not None:
             fixurl.append('filter=' + filter)
         listjs = []
-
         info = self.get_url('/api/v2/torrents/info?' + "&".join(fixurl))
-        if info.status_code == 200:
+        if info is None:
+            pass
+        elif info.status_code == 200:
             listjs = info.json()
         return listjs
 
     def torrentInfo(self, thash):
         listjs = {}
         info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
-        if info.status_code == 200:
+        if info is None:
+            pass
+        elif info.status_code == 200:
             listjs = info.json()
             if len(listjs) != 0:
                 return listjs[0]
         return listjs
 
     def torrentTrackers(self, thash):
+        listjs = []
         info = self.get_url('/api/v2/torrents/trackers?hash=' + thash)
-        if info.status_code == 200:
+        if info is None:
+            pass
+        elif info.status_code == 200:
             # listjs = info.json()
             # tracker = [val['url'] for val in listjs if val['status'] != 0]
             # self.logger.debug('tracker:' + '\n'.join(tracker))
-            return info.json()
+            listjs = info.json()
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
-        return []
+        return listjs
 
     def removeTrackers(self, thash, trackerurl):
         info = self.get_url('/api/v2/torrents/removeTrackers?hash=' + thash + '&urls=' + trackerurl)
-        if info.status_code == 200:
+        if info is None:
+            return False
+        elif info.status_code == 200:
             self.logger.debug('remove tracker successfully')
             return True
         elif info.status_code == 409:
@@ -127,7 +141,9 @@ class qbapi:
 
     def setLocation(self, thash, spath):
         info = self.get_url('/api/v2/torrents/setLocation?hashes=' + thash + '&location=' + spath)
-        if info.status_code == 200:
+        if info is None:
+            return False
+        elif info.status_code == 200:
             self.logger.debug('成功移动种子到' + spath)
             return True
         elif info.status_code == 400:
@@ -143,7 +159,9 @@ class qbapi:
     def torrentFiles(self, thash):
         listjs = []
         info = self.get_url('/api/v2/torrents/files?hash=' + thash)
-        if info.status_code == 200:
+        if info is None:
+            pass
+        elif info.status_code == 200:
             listjs = info.json()
         elif info.status_code == 404:
             self.logger.error('Torrent hash was not found')
@@ -152,6 +170,8 @@ class qbapi:
     def editTracker(self, thash, origin, new):
         info = self.get_url('/api/v2/torrents/editTracker?hash=' + thash +
                             '&origUrl=' + origin + '&newUrl=' + new)
+        if info is None:
+            return False
         if info.status_code == 200:
             return True
         elif info.status_code == 400:
@@ -168,21 +188,28 @@ class qbapi:
         deldata = 'true' if deldata else 'false'
         info = self.get_url(
             '/api/v2/torrents/delete?hashes=' + dellist + '&deleteFiles=' + deldata)
-        if info.status_code == 200:
+        if info is None:
+            return False
+        elif info.status_code == 200:
             return True
         return False
 
     def category(self):
+        listjs = {}
         info = self.get_url('/api/v2/torrents/categories')
-        if info.status_code == 200:
-            return info.json()
-        return {}
+        if info is None:
+            pass
+        elif info.status_code == 200:
+            listjs = info.json()
+        return listjs
 
     def setTorrentsCategory(self, thash, category):
         if isinstance(thash, list):
             dellithashst = "|".join(thash)
         info = self.get_url('/api/v2/torrents/setCategory?hashes=' + thash + '&category=' + category)
-        if info.status_code == 200:
+        if info is None:
+            return False
+        elif info.status_code == 200:
             self.logger.info('set category successfully')
             return True
         elif info.status_code == 409:
@@ -190,14 +217,16 @@ class qbapi:
         return False
 
     def getApplicationPreferences(self):
+        listjs = {}
         info = self.get_url('/api/v2/app/preferences')
-        if info.status_code == 200:
+        if info is None:
+            pass
+        elif info.status_code == 200:
             self.logger.debug('get preferences successfully')
             listjs = info.json()
-            return listjs
-        return {}
+        return listjs
 
-    def addNewTorrentByBin(self, binary, paused=None, category=None, autoTMM=None, savepath=None):
+    def addNewTorrentByBin(self, binary, paused=None, category=None, autoTMM=None, savepath=None, skip_checking=None):
         data = {}
         if paused is not None and isinstance(paused, bool):
             data['paused'] = paused
@@ -207,8 +236,12 @@ class qbapi:
             data['autoTMM'] = autoTMM
         if savepath is not None and isinstance(savepath, str):
             data['savepath'] = savepath
+        if skip_checking is not None and isinstance(skip_checking, bool):
+            data['skip_checking'] = skip_checking
         info = self.post_url('/api/v2/torrents/add', files={'torrents': binary}, data=data)
-        if info.status_code == 200:
+        if info is None:
+            return False
+        elif info.status_code == 200:
             self.logger.info('addtorrent  successfully ')
             return True
         elif info.status_code == 415:
@@ -221,7 +254,9 @@ class qbapi:
         if isinstance(hashes, list):
             hashes = "|".join(hashes)
         info = self.get_url('/api/v2/torrents/resume?hashes=' + hashes)
-        if info.status_code == 200:
+        if info is None:
+            return False
+        elif info.status_code == 200:
             self.logger.debug('resume torrents successfully')
             return True
         return False
