@@ -25,12 +25,12 @@ class ReseedInfoJson:
         with open(self._path, 'w', encoding='UTF-8') as f:
             f.write(json.dumps(jsonlist))
 
-    def changestatus(self, prhash, rshash, stauts):
+    def changestatus(self, prhash, rshash, status):
         jsonlist = self.getdata()
         update = False
         for idx, rs in enumerate(jsonlist[prhash]['rslist']):
             if rs['hash'] == rshash:
-                jsonlist[prhash]['rslist'][idx]['status'] = stauts
+                jsonlist[prhash]['rslist'][idx]['status'] = status
                 update = True
                 break
         if update:
