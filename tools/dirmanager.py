@@ -36,10 +36,10 @@ def getemptydirlist(path):
     if os.path.exists(path):
         files = os.listdir(path)  # 查找路径下的所有的文件夹及文件
         for file in files:
-            if os.path.isdir(path + '\\' + file):
-                if isdirempty(path + '\\' + file):  # 判断文件夹是否为空
+            if os.path.isdir(path + file):
+                if isdirempty(path + file):  # 判断文件夹是否为空
                     empty += 1
-                    emptylist.append(path + '\\' + file)
+                    emptylist.append(path + file)
                 else:
                     notempty += 1
             else:
