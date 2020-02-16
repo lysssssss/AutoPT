@@ -938,9 +938,10 @@ class Manager(object):
         newprhash = ReseedInfoJson().findprhashbyhash(rsinfo['hash'])
         if newprhash is None:
             return False
-        self.deletetorrent(prhash, True)
         rspstream, rspres = self.stationref[prname.lower()].getdownloadbypsk(prid)
         if rspres:
+            self.deletetorrent(prhash, True)
+            time.sleep(1)
             self.addreseed(newprhash, {
                 'hash': prhash,
                 'tid': prid,
@@ -948,6 +949,7 @@ class Manager(object):
             }, rspstream.content)
         else:
             self.logger.warning('种子下载失败，可能被删除了.' + rsinfo['hash'])
+            return False
         return True
 
     def recheckall(self):
