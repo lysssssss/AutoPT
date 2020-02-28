@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import time
@@ -549,7 +550,8 @@ class Manager(object):
             hashstr += ']'
         data = {
             "hash": hashstr,
-            "version": "0.2.0",
+            'sha1': hashlib.sha1(hashstr.encode()).hexdigest(),
+            "version": "1.5.0",
             "timestamp": time.time(),
             "sign": gl.get_value('config').token
         }
