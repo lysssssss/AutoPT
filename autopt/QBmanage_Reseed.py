@@ -581,19 +581,22 @@ class Manager(object):
             #     self.logger.error('未知错误。返回信息为）' + info.text)
             # elif 'success' in retmsg and (not retmsg['success']):
             #     self.logger.error('查询返回失败，错误信息' + retmsg['errmsg'])
-            if retmsg['ret'] != 200:
-                self.logger.error('未知错误。返回信息为）' + info.text)
-            elif len(retmsg['data']) != 0:
-                for val in retmsg['data'][thash]['torrent']:
-                    # 跳过自己的种
-                    if val['info_hash'] == thash:
-                        continue
-                    if supportsid(val['sid']):
-                        res.append({
-                            'sid': val['sid'],
-                            'tid': val['torrent_id'],
-                            'hash': val['info_hash']
-                        })
+            try:
+                if retmsg['ret'] != 200:
+                    self.logger.error('未知错误。返回信息为）' + info.text)
+                elif len(retmsg['data']) != 0:
+                    for val in retmsg['data'][thash]['torrent']:
+                        # 跳过自己的种
+                        if val['info_hash'] == thash:
+                            continue
+                        if supportsid(val['sid']):
+                            res.append({
+                                'sid': val['sid'],
+                                'tid': val['torrent_id'],
+                                'hash': val['info_hash']
+                            })
+            except:
+                self.logger.error('解析服务器返回数据失败')
         else:
             self.logger.error('请求服务器失败！错误状态码:' + str(info.status_code))
         return res
@@ -1039,21 +1042,24 @@ class Manager(object):
             #     self.logger.error('未知错误。返回信息为）' + info.text)
             # elif 'success' in retmsg and (not retmsg['success']):
             #     self.logger.error('查询返回失败，错误信息' + retmsg['errmsg'])
-            if retmsg['ret'] != 200:
-                self.logger.error('未知错误。返回信息为）' + info.text)
-            elif len(retmsg['data']) != 0:
-                for key, value in retmsg['data'].items():
-                    res[key] = {'torrent': []}
-                    for idx, val in enumerate(value['torrent']):
-                        if not supportsid(val['sid']):
-                            continue
-                        if val['info_hash'] == key:
-                            continue
-                        res[key]['torrent'].append({
-                            'hash': val['info_hash'],
-                            'tid': val['torrent_id'],
-                            'sid': val['sid']
-                        })
+            try:
+                if retmsg['ret'] != 200:
+                    self.logger.error('未知错误。返回信息为）' + info.text)
+                elif len(retmsg['data']) != 0:
+                    for key, value in retmsg['data'].items():
+                        res[key] = {'torrent': []}
+                        for idx, val in enumerate(value['torrent']):
+                            if not supportsid(val['sid']):
+                                continue
+                            if val['info_hash'] == key:
+                                continue
+                            res[key]['torrent'].append({
+                                'hash': val['info_hash'],
+                                'tid': val['torrent_id'],
+                                'sid': val['sid']
+                            })
+            except:
+                self.logger.error('解析服务器返回数据失败')
             # else:
             #     self.logger.debug('服务器返回null，未查询到辅种数据')
         else:
