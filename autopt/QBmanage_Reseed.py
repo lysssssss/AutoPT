@@ -447,6 +447,13 @@ class Manager(object):
                             break
                 # 应该能找到，不能找到则有问题
                 if hasfound:
+
+                    # ----------testing
+                    if jsonlist[temp[0]]['rslist'][temp[1]]['status'] == 0:
+                        gl.get_value('wechat').send(text='程序断点提醒---已存在种子情况分析处理')
+                        self.changechecklistrs(thash)
+                        return
+
                     # 若有主，主是否在下载目录，如果是，则转换，如果不是，则此种子已经为辅，不必换
                     rsca = self.qbapi.torrentInfo(temp[0])
                     if rsca['category'] in self.dlcategory or rsca['category'] == self.reseedcategory:
@@ -456,8 +463,7 @@ class Manager(object):
                         origininfo = listinfo['info']
                         origininfo['status'] = 1
                         rslist = listinfo['rslist']
-                        newinfo = {}
-                        newinfo['info'] = rslist[temp[1]]
+                        newinfo = {'info': rslist[temp[1]]}
                         del rslist[temp[1]]
                         rslist.append(origininfo)
                         del newinfo['info']['status']
@@ -1231,12 +1237,12 @@ class Manager(object):
                     if rs['status'] == 2:
                         continue
                     if rs['hash'] not in info:
-                        self.logger.debug('辅种.{}.不见了删除辅种信息,主种为.{}'.format(rs['hash'], k))
+                        self.logger.info('辅种.{}.不见了删除辅种信息,主种为.{}'.format(rs['hash'], k))
                         delrsidx[k].append(rs)
                 if len(delrsidx[k]) == 0:
                     del delrsidx[k]
             else:
-                self.logger.debug('主种.{}.不见了删除主辅种信息'.format(k))
+                self.logger.info('主种.{}.不见了删除主辅种信息'.format(k))
                 delprhash.append(k)
                 dellist = [k]
                 for rs in v['rslist']:
@@ -1253,3 +1259,32 @@ class Manager(object):
                     jsonlist[k]['rslist'].remove(delv)
             with open(self.reseedjsonname, 'w', encoding='utf-8')as f:
                 f.write(json.dumps(jsonlist))
+
+    def changechecklistrs(self, thash):
+        newstr = ''
+        updatefile = False
+        if os.path.exists(self.rechecklistname):
+            with open(self.rechecklistname, 'r', encoding='UTF-8') as f:
+                tempdic = {}
+                for line in f.readlines():
+                    rct = line.strip().split(',')
+                    if rct[3] == thash and rct[2] == 'rs':
+                        rct[5] = 't'
+                        updatefile = True
+                        newstr += ','.join(rct) + '\n'
+                        tempdic[rct[6]] = rct[3]
+                    else:
+                        if rct[2] == 'rs' and rct[6] in tempdic :
+                            if rct[5] == 'f':
+                                rct[6] = tempdic[rct[6]]
+                            else:
+                                rct[6] = tempdic[rct[6]]
+                                tempdic[rct[6]] = rct[3]
+                            newstr += ','.join(rct) + '\n'
+                        else:
+                            newstr += line
+        if updatefile:
+            with open(self.rechecklistname, 'w', encoding='UTF-8') as f:
+                f.write(newstr)
+            return True
+        return False
