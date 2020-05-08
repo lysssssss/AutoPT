@@ -56,19 +56,19 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 15
             else:
-                return page.seeders < 20
+                return page.seeders < 15
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 60
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 30
             else:
-                return page.seeders < 60
+                return page.seeders < 30
         elif page.method == 2:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 600
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 200
             else:
-                return page.seeders < 600
+                return page.seeders < 200
 
     def getdownload(self, id_):
         """Download torrent in url
@@ -276,4 +276,4 @@ class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
         elif self.method == 1:
             return self.size < 256 and self.seeders > 0
         elif self.method == 2:
-            return self.size < 512 and self.seeders > 0
+            return self.size < 2048 and self.seeders > 0

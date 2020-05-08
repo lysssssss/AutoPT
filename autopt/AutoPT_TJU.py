@@ -42,27 +42,27 @@ class AutoPT_TJU(AutoPT.AutoPT):
         if page.method == 0:
             if page.futherstamp != -1:
                 if page.size < 32:
-                    return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
+                    return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 5
                 else:
                     return page.ipv6 == 'conn-yes' and (
-                                page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 13
+                                page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 5
             else:
                 if page.size < 32:
-                    return page.seeders < 13
+                    return page.seeders < 5
                 else:
-                    return page.ipv6 == 'conn-yes' and page.seeders < 13
+                    return page.ipv6 == 'conn-yes' and page.seeders < 5
         elif page.method == 1:
             if page.futherstamp != -1:
                 if page.size < 32:
-                    return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
+                    return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 10
                 else:
                     return page.ipv6 == 'conn-yes' and (
-                                page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
+                                page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 10
             else:
                 if page.size < 32:
-                    return page.seeders < 20
+                    return page.seeders < 10
                 else:
-                    return page.ipv6 == 'conn-yes' and page.seeders < 20
+                    return page.ipv6 == 'conn-yes' and page.seeders < 10
 
 
 class AutoPT_Page_TJU(AutoPT.AutoPT_Page):

@@ -133,7 +133,7 @@ class Manager(object):
         if not self.qbapi.torrentsDelete(alllist, deleteFiles):
             ret = False
         # 每个文件延迟0.3333秒
-        time.sleep(filescount / 3)
+        # time.sleep(filescount / 3)
 
         jsonlist = {}
         updatefile = False
@@ -333,6 +333,8 @@ class Manager(object):
 
                 # 删除匹配的tracker,暂时每个种子都判断不管是哪个站点
                 self.removematchtracker(thash, 'pttrackertju.tjupt.org')
+                self.removematchtracker(thash, 'tracker - campus.tjupt.org')
+
 
                 self.checktorrenttracker(thash)
                 # self.qbapi.resumeTorrents(thash)
@@ -1183,7 +1185,7 @@ class Manager(object):
                     rsinfo = val
                     break
             if rsinfo is None:
-                gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
+                # gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
                 self.logger.info('删除主种' + k + '.因为种子被站点删除，并且辅种信息都是校验失败或都已被站点删除')
                 self.deletetorrent(k)
                 continue
