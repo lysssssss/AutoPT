@@ -335,7 +335,6 @@ class Manager(object):
                 self.removematchtracker(thash, 'pttrackertju.tjupt.org')
                 self.removematchtracker(thash, 'tracker - campus.tjupt.org')
 
-
                 self.checktorrenttracker(thash)
                 # self.qbapi.resumeTorrents(thash)
                 with open(self.rechecklistname, 'a', encoding='UTF-8')as f:
@@ -452,7 +451,7 @@ class Manager(object):
 
                     # ----------testing
                     if jsonlist[temp[0]]['rslist'][temp[1]]['status'] == 0:
-                        gl.get_value('wechat').send(text='程序断点提醒---已存在种子情况分析处理')
+                        # gl.get_value('wechat').send(text='程序断点提醒---已存在种子情况分析处理')
                         self.changechecklistrs(thash)
                         return
 
@@ -1276,7 +1275,7 @@ class Manager(object):
                         newstr += ','.join(rct) + '\n'
                         tempdic[rct[6]] = rct[3]
                     else:
-                        if rct[2] == 'rs' and rct[6] in tempdic :
+                        if rct[2] == 'rs' and rct[6] in tempdic:
                             if rct[5] == 'f':
                                 rct[6] = tempdic[rct[6]]
                             else:

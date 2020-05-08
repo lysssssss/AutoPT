@@ -67,11 +67,11 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
                         return
                     recheckpage = True
                     if line.find('img', class_='pro_free2up') is not None and \
-                            line.find('img', class_='hitandrun') is None:
+                            line.find('img', class_='hitandrun') is None and not self.config['onlyattendance']:
                         yield self.autoptpage(line, 1)
                         n = 1
                     elif line.find('img', class_='pro_free') is not None and \
-                            line.find('img', class_='hitandrun') is None:
+                            line.find('img', class_='hitandrun') is None and not self.config['onlyattendance']:
                         yield self.autoptpage(line)
                         n = 1
                 else:
@@ -81,6 +81,8 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
             self.logger.debug(e)
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            if self.config['onlyattendance']:
+                self.logger.warning('仅签到失败')
 
 
 class AutoPT_Page_PTHOME(AutoPT.AutoPT_Page):

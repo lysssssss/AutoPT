@@ -115,10 +115,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    if line.find('img', class_='pro_free2up') is not None:
+                    if line.find('img', class_='pro_free2up') is not None and not self.config['onlyattendance']:
                         yield self.autoptpage(line, 1)
                         n = 1
-                    if line.find('img', class_='pro_free') is not None:
+                    if line.find('img', class_='pro_free') is not None and not self.config['onlyattendance']:
                         yield self.autoptpage(line)
                         n = 1
                 else:
@@ -128,6 +128,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             self.logger.debug(e)
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            if self.config['onlyattendance']:
+                self.logger.warning('仅签到失败')
+        elif recheckpage and self.config['onlyattendance']:
+            return
         if not gl.get_value('thread_flag'):
             return
 
@@ -145,10 +149,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    if line.find('img', class_='pro_free2up') is not None:
+                    if line.find('img', class_='pro_free2up') is not None and not self.config['onlyattendance']:
                         yield self.autoptpage(line, 2)
                         n = 1
-                    if line.find('img', class_='pro_free') is not None:
+                    if line.find('img', class_='pro_free') is not None and not self.config['onlyattendance']:
                         yield self.autoptpage(line, 2)
                         n = 1
                 else:
@@ -158,6 +162,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             self.logger.debug(e)
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            if self.config['onlyattendance']:
+                self.logger.warning('仅签到失败')
+        elif recheckpage and self.config['onlyattendance']:
+            return
         if not gl.get_value('thread_flag'):
             return
 
@@ -175,10 +183,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    if line.find('img', class_='pro_free2up') is not None:
+                    if line.find('img', class_='pro_free2up') is not None and not self.config['onlyattendance']:
                         yield self.autoptpage(line, 1)
                         n = 1
-                    if line.find('img', class_='pro_free') is not None:
+                    if line.find('img', class_='pro_free') is not None and not self.config['onlyattendance']:
                         yield self.autoptpage(line)
                         n = 1
                 else:
@@ -188,6 +196,10 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             # self.logger.exception(traceback.format_exc())
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            if self.config['onlyattendance']:
+                self.logger.warning('仅签到失败')
+        elif recheckpage and self.config['onlyattendance']:
+            return
 
     def getdownloadbypsk(self, id_):
         """Download torrent in url

@@ -126,7 +126,8 @@ class AutoPT(ABC):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    yield self.autoptpage(line, 1)
+                    if not self.config['onlyattendance']:
+                        yield self.autoptpage(line, 1)
                     n = 1
                 else:
                     n -= 1
@@ -144,7 +145,8 @@ class AutoPT(ABC):
                     if not gl.get_value('thread_flag'):
                         return
                     recheckpage = True
-                    yield self.autoptpage(line)
+                    if not self.config['onlyattendance']:
+                        yield self.autoptpage(line)
                     n = 1
                 else:
                     n -= 1
@@ -152,6 +154,8 @@ class AutoPT(ABC):
             self.logger.exception(traceback.format_exc())
         if not recheckpage:
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            if self.config['onlyattendance']:
+                self.logger.warning('仅签到失败')
 
     def get_url(self, url):
         """Return BeautifulSoup Pages
@@ -181,6 +185,8 @@ class AutoPT(ABC):
     def start(self):
         """Start spider"""
         self.logger.info('Start Spider [' + self.stationname + ']')
+        if self.config['onlyattendance']:
+            self.logger.info('仅签到模式')
         # self.checktorrenttime()
         # self._load()
         with open(self.csvfilename, 'a', encoding='UTF-8') as f:

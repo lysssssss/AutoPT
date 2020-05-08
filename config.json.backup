@@ -18,6 +18,8 @@
   "BYR": {
     "switch": false,
     //总开关
+    "onlyAttendance": false,
+    //仅签到模式
     "IntervalTime": 10,
     //检查PT站的时间间隔,单位：分钟 默认10分钟
     "passkey": "",
@@ -42,6 +44,8 @@
   "TJU": {
     "switch": false,
     //总开关
+    "onlyAttendance": false,
+    //仅签到模式
     "IntervalTime": 10,
     //检查PT站的时间间隔,单位：分钟 默认10分钟
     "passkey": "",
@@ -66,6 +70,8 @@
   "PTER": {
     "switch": false,
     //总开关
+    "onlyAttendance": false,
+    //仅签到模式
     "IntervalTime": 10,
     //检查PT站的时间间隔,单位：分钟 默认10分钟
     "passkey": "",
@@ -89,6 +95,8 @@
   "MTEAM": {
     "switch": false,
     //总开关
+    "onlyAttendance": false,
+    //仅签到模式
     "IntervalTime": 10,
     //检查PT站的时间间隔,单位：分钟 默认10分钟
     "passkey": "",
@@ -112,6 +120,8 @@
   "PTHOME": {
     "switch": false,
     //总开关
+    "onlyAttendance": false,
+    //仅签到模式
     "IntervalTime": 10,
     //检查PT站的时间间隔,单位：分钟 默认10分钟
     "passkey": "",

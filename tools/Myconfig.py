@@ -37,6 +37,7 @@ class Config(object):
         }
         self.byrconfig = {
             'switch': False,
+            'onlyattendance': False,
             'name': 'BYR',
             'passkey': '',
             'maincategory': '',
@@ -50,6 +51,7 @@ class Config(object):
         }
         self.tjuconfig = {
             'switch': False,
+            'onlyattendance': False,
             'name': 'TJU',
             'passkey': '',
             'maincategory': '',
@@ -63,6 +65,7 @@ class Config(object):
         }
         self.pterconfig = {
             'switch': False,
+            'onlyattendance': False,
             'name': 'PTER',
             'passkey': '',
             'maincategory': '',
@@ -76,6 +79,7 @@ class Config(object):
         }
         self.mteamconfig = {
             'switch': False,
+            'onlyattendance': False,
             'name': 'MTeam',
             'passkey': '',
             'maincategory': '',
@@ -89,6 +93,7 @@ class Config(object):
         }
         self.pthomeconfig = {
             'switch': False,
+            'onlyattendance': False,
             'name': 'PTHOME',
             'passkey': '',
             'maincategory': '',
@@ -165,8 +170,14 @@ class Config(object):
     def readcommonconfig(self, paras, pt_config):
         if 'switch' in paras:
             pt_config['switch'] = paras['switch']
+        if 'onlyAttendance' in paras:
+            pt_config['onlyattendance'] = paras['onlyAttendance']
         if 'IntervalTime' in paras:
-            pt_config['intervaltime'] = paras['IntervalTime'] * 60
+            if pt_config['onlyattendance']:
+                # 只签到模式，6小时访问一下
+                pt_config['intervaltime'] = 60 * 6
+            else:
+                pt_config['intervaltime'] = paras['IntervalTime'] * 60
         if 'CapacityNum' in paras:
             pt_config['capacitynum'] = paras['CapacityNum'] if paras['CapacityNum'] > -1 else 10485760
         if 'CapacityUint' in paras:
