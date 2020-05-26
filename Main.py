@@ -6,6 +6,7 @@ from threading import Thread
 import psutil
 
 from autopt.AutoPT_BYR import AutoPT_BYR
+from autopt.AutoPT_FRDS import AutoPT_FRDS
 from autopt.AutoPT_MTEAM import AutoPT_MTEAM
 from autopt.AutoPT_PTER import AutoPT_PTER
 from autopt.AutoPT_PTHOME import AutoPT_PTHOME
@@ -25,6 +26,7 @@ def run():
         auto_pter = None
         auto_mteam = None
         auto_pthome = None
+        auto_frds = None
 
         Runqbittorrent()
 
@@ -35,7 +37,8 @@ def run():
                 'tju': auto_tju,
                 'mteam': auto_mteam,
                 'pter': auto_pter,
-                'pthome': auto_pthome
+                'pthome': auto_pthome,
+                'frds': auto_frds
             }
         }
         gl.set_value('allref', refconfig)
@@ -49,6 +52,8 @@ def run():
         refconfig['ref']['mteam'] = auto_mteam
         auto_pthome = AutoPT_PTHOME()
         refconfig['ref']['pthome'] = auto_pthome
+        auto_frds = AutoPT_FRDS()
+        refconfig['ref']['frds'] = auto_frds
 
         if gl.get_value('config').switch('byr'):
             # auto_byr = AutoPT_BYR()
@@ -70,6 +75,10 @@ def run():
             # auto_pthome = AutoPT_PTHOME()
             if maxtime % gl.get_value('config').intervaltime('pthome') != 0:
                 maxtime *= gl.get_value('config').intervaltime('pthome')
+        if gl.get_value('config').switch('frds'):
+            # auto_pthome = AutoPT_FRDS()
+            if maxtime % gl.get_value('config').intervaltime('frds') != 0:
+                maxtime *= gl.get_value('config').intervaltime('frds')
 
         manager = Manager()
         if maxtime % (6 * 3600) != 0:
@@ -84,10 +93,13 @@ def run():
                 manager.checkprttracker()
                 manager.recheckall()
                 manager.checkemptydir()
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('frds') and counttime % gl.get_value(
+                    'config').intervaltime('frds') == 0:
+                auto_frds.start()
+                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('pthome') and counttime % gl.get_value(
                     'config').intervaltime('pthome') == 0:
                 auto_pthome.start()
-                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('mteam') and counttime % gl.get_value(
                     'config').intervaltime('mteam') == 0:
                 auto_mteam.start()

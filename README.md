@@ -11,7 +11,7 @@ This is a program for auto download PT torrents. It uses QBittorrent to manage t
 Works on QBittorrent version 4.1+, Windows
 支持win10下使用QB4.1+版本。
 ## 支持站点  
-Support PT Station: BYR, TJU, PTER, MTeam, PTHome
+Support PT Station: BYR, TJU, PTER, MTeam, PTHome, FRDS
 暂时支持北邮和北洋、猫站，馒头, 铂金家等,拿到药后再支持更多.  
 
 ## 食用教程  

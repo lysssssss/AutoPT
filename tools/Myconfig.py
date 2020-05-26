@@ -18,13 +18,16 @@ class Config(object):
             return self.mteamconfig
         elif key.upper() == 'PTHOME':
             return self.pthomeconfig
+        elif key.upper() == 'FRDS':
+            return self.frdsconfig
         elif key.upper() == 'ALL':
             return {
                 'BYR': self.byrconfig,
                 'TJU': self.tjuconfig,
                 'PTER': self.pterconfig,
                 'MTEAM': self.mteamconfig,
-                'PTHOME': self.pthomeconfig
+                'PTHOME': self.pthomeconfig,
+                'FRDS': self.frdsconfig
             }
         else:
             return {}
@@ -45,8 +48,9 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 10,
-            'keeptorrenttime': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
             'root': 'https://bt.byr.cn/'
         }
         self.tjuconfig = {
@@ -59,8 +63,9 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 10,
-            'keeptorrenttime': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
             'root': 'https://www.tjupt.org/'
         }
         self.pterconfig = {
@@ -73,8 +78,9 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 10,
-            'keeptorrenttime': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
             'root': 'https://pterclub.com/'
         }
         self.mteamconfig = {
@@ -87,8 +93,9 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 10,
-            'keeptorrenttime': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
             'root': 'https://pt.m-team.cc/'
         }
         self.pthomeconfig = {
@@ -101,9 +108,26 @@ class Config(object):
             'capacity': 0,
             'capacityuint': 'GB',
             'capacitynum': 0,
-            'intervaltime': 10,
-            'keeptorrenttime': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
             'root': 'https://www.pthome.net/'
+        }
+        self.frdsconfig = {
+            'switch': False,
+            'onlyattendance': False,
+            'name': 'FRDS',
+            'passkey': '',
+            'level': 0,
+            'maincategory': '',
+            'subcategory': [],
+            'capacity': 0,
+            'capacityuint': 'GB',
+            'capacitynum': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
+            'root': 'https://pt.keepfrds.com/'
         }
         self.qbtconfig = {
             'url': '',
@@ -122,6 +146,7 @@ class Config(object):
             self.readpterconfig(paras)
             self.readmteamconfig(paras)
             self.readpthomeconfig(paras)
+            self.readfrdsconfig(paras)
             self.readreseedconfig(paras)
         else:
             self._logsavetime = 7
@@ -167,6 +192,12 @@ class Config(object):
             self.readcommonconfig(paras, self.pthomeconfig)
             # To add custom config here
 
+    def readfrdsconfig(self, param):
+        if 'FRDS' in param:
+            paras = param['FRDS']
+            self.readcommonconfig(paras, self.frdsconfig)
+            # To add custom config here
+
     def readcommonconfig(self, paras, pt_config):
         if 'switch' in paras:
             pt_config['switch'] = paras['switch']
@@ -175,7 +206,7 @@ class Config(object):
         if 'IntervalTime' in paras:
             if pt_config['onlyattendance']:
                 # 只签到模式，6小时访问一下
-                pt_config['intervaltime'] = 60 * 6
+                pt_config['intervaltime'] = 60 * 60 * 6
             else:
                 pt_config['intervaltime'] = paras['IntervalTime'] * 60
         if 'CapacityNum' in paras:
@@ -191,6 +222,8 @@ class Config(object):
             pt_config['keeptorrenttime'] = paras['KeepTorrentTime'] if paras['KeepTorrentTime'] >= 0 else 0
         if 'passkey' in paras:
             pt_config['passkey'] = paras['passkey']
+        if 'UploadSpeedLimit' in paras:
+            pt_config['uploadspeedlimit'] = paras['UploadSpeedLimit']
         # 转换磁盘容量
         self.transcapacity(pt_config)
 
@@ -243,6 +276,7 @@ class Config(object):
             'PTER': self.pterconfig,
             'MTEAM': self.mteamconfig,
             'PTHOME': self.pthomeconfig,
+            'FRDS': self.frdsconfig,
             'RESEED': self.reseedconfig
         }
 
@@ -269,6 +303,9 @@ class Config(object):
 
     def passkey(self, name):
         return self.getnameconfig()[name.upper()]['passkey']
+
+    def uploadspeedlimit(self, name):
+        return self.getnameconfig()[name.upper()]['uploadspeedlimit']
 
     @property
     def qbaddr(self):
