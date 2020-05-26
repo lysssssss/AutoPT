@@ -324,7 +324,8 @@ class Manager(object):
             if not self.checksize(page.size):
                 return
 
-            if self.qbapi.addNewTorrentByBin(content, paused=False, category=self.maincategory, autoTMM=True):
+            if self.qbapi.addNewTorrentByBin(content, paused=False, category=self.maincategory, autoTMM=True,
+                                             upLimit=self.config['uploadspeedlimit'] * 1024 * 1024 / 8):
                 self.logger.info('addtorrent successfully info hash = ' + thash)
                 # 添加辅种功能后不再等待，否则经常在此等待
                 # 防止磁盘卡死,当磁盘碎片太多或磁盘负载重时此处会卡几到几十分钟
@@ -663,7 +664,8 @@ class Manager(object):
                              get_torrent_name(content))
 
         if self.qbapi.addNewTorrentByBin(content, paused=True, category=self.reseedcategory, autoTMM=False,
-                                         savepath=filterdstpath + 'ReSeed' + '\\' + thash[:6]):
+                                         savepath=filterdstpath + 'ReSeed' + '\\' + thash[:6],
+                                         upLimit=self.config['uploadspeedlimit'] * 1024 * 1024 / 8):
             self.logger.info('addtorrent  successfully info hash = ' + thash)
 
             while not self.gettorrentdlstatus(thash):
@@ -718,7 +720,9 @@ class Manager(object):
 
         if self.qbapi.addNewTorrentByBin(content, paused=True, category=self.reseedcategory, autoTMM=False,
                                          savepath=filterdstpath + 'ReSeed' + '\\' + rsinfo['hash'][:6],
-                                         skip_checking=True):
+                                         skip_checking=True,
+                                         upLimit=self.stationref[getsidname(rsinfo['sid']).lower()].config[
+                                                     'uploadspeedlimit'] * 1024 * 1024 / 8):
             self.logger.info('addreseed successfully info hash = ' + rsinfo['hash'])
 
             # 辅种不需要等待，因为文件本来就存在不需要分配空间

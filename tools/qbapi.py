@@ -226,7 +226,8 @@ class qbapi:
             listjs = info.json()
         return listjs
 
-    def addNewTorrentByBin(self, binary, paused=None, category=None, autoTMM=None, savepath=None, skip_checking=None):
+    def addNewTorrentByBin(self, binary, paused=None, category=None, autoTMM=None, savepath=None, skip_checking=None,
+                           upLimit=None):
         data = {}
         if paused is not None and isinstance(paused, bool):
             data['paused'] = paused
@@ -238,6 +239,8 @@ class qbapi:
             data['savepath'] = savepath
         if skip_checking is not None and isinstance(skip_checking, bool):
             data['skip_checking'] = skip_checking
+        if upLimit is not None and (isinstance(upLimit, int) or isinstance(upLimit, float)) and upLimit >= 0:
+            data['upLimit'] = int(upLimit)
         info = self.post_url('/api/v2/torrents/add', files={'torrents': binary}, data=data)
         if info is None:
             return False
