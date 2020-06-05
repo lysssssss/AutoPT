@@ -334,7 +334,7 @@ class Manager(object):
 
                 # 删除匹配的tracker,暂时每个种子都判断不管是哪个站点
                 self.removematchtracker(thash, 'pttrackertju.tjupt.org')
-                self.removematchtracker(thash, 'tracker - campus.tjupt.org')
+                self.removematchtracker(thash, 'tracker-campus.tjupt.org')
 
                 self.checktorrenttracker(thash)
                 # self.qbapi.resumeTorrents(thash)
@@ -673,6 +673,7 @@ class Manager(object):
 
             # 删除匹配的tracker,暂时每个种子都判断不管是哪个站点
             self.removematchtracker(thash, 'pttrackertju.tjupt.org')
+            self.removematchtracker(thash, 'tracker-campus.tjupt.org')
 
             self.checktorrenttracker(thash)
             change = 'f'
@@ -732,6 +733,7 @@ class Manager(object):
 
             # 删除匹配的tracker,暂时每个种子都判断不管是哪个站点
             self.removematchtracker(rsinfo['hash'], 'pttrackertju.tjupt.org')
+            self.removematchtracker(rsinfo['hash'], 'tracker-campus.tjupt.org')
 
             self.checktorrenttracker(rsinfo['hash'])
             ReseedInfoJson().addrstopr(prhash, rsinfo['hash'], getsidname(rsinfo['sid']), rsinfo['tid'], 0)

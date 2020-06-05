@@ -20,6 +20,8 @@ class Config(object):
             return self.pthomeconfig
         elif key.upper() == 'FRDS':
             return self.frdsconfig
+        elif key.upper() == 'TTG':
+            return self.ttgconfig
         elif key.upper() == 'ALL':
             return {
                 'BYR': self.byrconfig,
@@ -27,7 +29,8 @@ class Config(object):
                 'PTER': self.pterconfig,
                 'MTEAM': self.mteamconfig,
                 'PTHOME': self.pthomeconfig,
-                'FRDS': self.frdsconfig
+                'FRDS': self.frdsconfig,
+                'TTG': self.ttgconfig
             }
         else:
             return {}
@@ -129,6 +132,22 @@ class Config(object):
             'uploadspeedlimit': 0,
             'root': 'https://pt.keepfrds.com/'
         }
+        self.ttgconfig = {
+            'switch': False,
+            'onlyattendance': False,
+            'name': 'TTG',
+            'passkey': '',
+            'level': 0,
+            'maincategory': '',
+            'subcategory': [],
+            'capacity': 0,
+            'capacityuint': 'GB',
+            'capacitynum': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
+            'root': 'https://totheglory.im/'
+        }
         self.qbtconfig = {
             'url': '',
             'path': ''
@@ -147,6 +166,7 @@ class Config(object):
             self.readmteamconfig(paras)
             self.readpthomeconfig(paras)
             self.readfrdsconfig(paras)
+            self.readttgconfig(paras)
             self.readreseedconfig(paras)
         else:
             self._logsavetime = 7
@@ -196,6 +216,12 @@ class Config(object):
         if 'FRDS' in param:
             paras = param['FRDS']
             self.readcommonconfig(paras, self.frdsconfig)
+            # To add custom config here
+
+    def readttgconfig(self, param):
+        if 'TTG' in param:
+            paras = param['TTG']
+            self.readcommonconfig(paras, self.ttgconfig)
             # To add custom config here
 
     def readcommonconfig(self, paras, pt_config):
@@ -277,6 +303,7 @@ class Config(object):
             'MTEAM': self.mteamconfig,
             'PTHOME': self.pthomeconfig,
             'FRDS': self.frdsconfig,
+            'TTG': self.ttgconfig,
             'RESEED': self.reseedconfig
         }
 

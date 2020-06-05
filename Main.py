@@ -11,6 +11,7 @@ from autopt.AutoPT_MTEAM import AutoPT_MTEAM
 from autopt.AutoPT_PTER import AutoPT_PTER
 from autopt.AutoPT_PTHOME import AutoPT_PTHOME
 from autopt.AutoPT_TJU import AutoPT_TJU
+from autopt.AutoPT_TTG import AutoPT_TTG
 from autopt.QBmanage_Reseed import Manager
 from tools import Myconfig, Mylogger, BGIcon
 from tools import globalvar as gl
@@ -27,6 +28,7 @@ def run():
         auto_mteam = None
         auto_pthome = None
         auto_frds = None
+        auto_ttg = None
 
         Runqbittorrent()
 
@@ -38,7 +40,8 @@ def run():
                 'mteam': auto_mteam,
                 'pter': auto_pter,
                 'pthome': auto_pthome,
-                'frds': auto_frds
+                'frds': auto_frds,
+                'ttg': auto_ttg
             }
         }
         gl.set_value('allref', refconfig)
@@ -54,6 +57,8 @@ def run():
         refconfig['ref']['pthome'] = auto_pthome
         auto_frds = AutoPT_FRDS()
         refconfig['ref']['frds'] = auto_frds
+        auto_ttg = AutoPT_TTG()
+        refconfig['ref']['ttg'] = auto_ttg
 
         if gl.get_value('config').switch('byr'):
             # auto_byr = AutoPT_BYR()
@@ -79,6 +84,10 @@ def run():
             # auto_pthome = AutoPT_FRDS()
             if maxtime % gl.get_value('config').intervaltime('frds') != 0:
                 maxtime *= gl.get_value('config').intervaltime('frds')
+        if gl.get_value('config').switch('ttg'):
+            # auto_pthome = AutoPT_TTG)
+            if maxtime % gl.get_value('config').intervaltime('ttg') != 0:
+                maxtime *= gl.get_value('config').intervaltime('ttg')
 
         manager = Manager()
         if maxtime % (6 * 3600) != 0:
@@ -93,6 +102,10 @@ def run():
                 manager.checkprttracker()
                 manager.recheckall()
                 manager.checkemptydir()
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('ttg') and counttime % gl.get_value(
+                    'config').intervaltime('ttg') == 0:
+                auto_ttg.start()
+                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('frds') and counttime % gl.get_value(
                     'config').intervaltime('frds') == 0:
                 auto_frds.start()
