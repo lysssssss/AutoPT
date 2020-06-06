@@ -1,6 +1,7 @@
 import json
 import time
 import traceback
+from random import randint
 from urllib.parse import parse_qs, urlparse
 
 import demjson
@@ -53,12 +54,12 @@ class AutoPT_TTG(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 20
+                return (page.futherstamp - time.time() > 3 * 60 * 60) and page.seeders < 20
             else:
                 return page.seeders < 20
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 50
+                return (page.futherstamp - time.time() > 3 * 60 * 60) and page.seeders < 50
             else:
                 return page.seeders < 50
 
@@ -142,7 +143,7 @@ class AutoPT_TTG(AutoPT.AutoPT):
         :url: url
         :filename: torrent filename
         """
-        url = self._root + 'dl/' + id_ + '/' + str(range(500, 10000))
+        url = self._root + 'dl/' + id_ + '/' + str(randint(500, 10000))
         trytime = 0
         req = None
 
