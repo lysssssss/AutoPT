@@ -1258,7 +1258,6 @@ class Manager(object):
                     dellist.append(rs['hash'])
                 self.qbapi.torrentsDelete(dellist, True)
         if len(delrsidx) != 0 or len(delprhash) != 0:
-            # gl.get_value('wechat').send(text='程序断点提醒---json种子被删除测试')
             for val in delprhash:
                 del jsonlist[val]
             for k, v in delrsidx.items():

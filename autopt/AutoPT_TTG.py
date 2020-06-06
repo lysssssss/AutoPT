@@ -65,15 +65,13 @@ class AutoPT_TTG(AutoPT.AutoPT):
 
     def attendance(self, page):
         try:
-            if len(page.find_all('a', id_='signed')) != 0:
-                print('可签到')
-                gl.get_value('wechat').send(text='程序断点提醒---ttg签到测试')
+            if len(page.find_all('a', id='signed')) != 0:
                 for signcode in page.find_all('script', {'type': 'text/javascript'}):
                     for line in str(signcode).split('\n'):
                         if 'signed.php' in line:
                             line = line[line.find('{'):line.find('}') + 1]
                             postdata = demjson.decode(line)
-                            info = self._session.post(self._root + 'signed.php', line, timeout=(30, 30))
+                            info = self._session.post(self._root + 'signed.php', postdata, timeout=(30, 30))
                             self.logger.info(info.text.encode('ISO-8859-1').decode('utf-8'))
                             return True
         except BaseException as e:
