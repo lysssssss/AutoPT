@@ -70,7 +70,7 @@ class qbapi:
         info = self.get_url(
             '/api/v2/torrents/setAutoManagement?hashes=' + thash + '&enable=' + b)
         if info is None:
-            pass
+            raise Exception('Connect qb fail')
         elif info.status_code == 200:
             # self.logger.debug('成功关闭' + thash + '自动管理')
             pass
@@ -94,7 +94,7 @@ class qbapi:
         listjs = []
         info = self.get_url('/api/v2/torrents/info?' + "&".join(fixurl))
         if info is None:
-            pass
+            raise Exception('Connect qb fail')
         elif info.status_code == 200:
             listjs = info.json()
         return listjs
@@ -103,7 +103,7 @@ class qbapi:
         listjs = {}
         info = self.get_url('/api/v2/torrents/info?hashes=' + thash)
         if info is None:
-            pass
+            raise Exception('Connect qb fail')
         elif info.status_code == 200:
             listjs = info.json()
             if len(listjs) != 0:
@@ -114,6 +114,7 @@ class qbapi:
         listjs = []
         info = self.get_url('/api/v2/torrents/trackers?hash=' + thash)
         if info is None:
+            # raise Exception('Connect qb fail')
             pass
         elif info.status_code == 200:
             # listjs = info.json()
@@ -160,7 +161,7 @@ class qbapi:
         listjs = []
         info = self.get_url('/api/v2/torrents/files?hash=' + thash)
         if info is None:
-            pass
+            raise Exception('Connect qb fail')
         elif info.status_code == 200:
             listjs = info.json()
         elif info.status_code == 404:
@@ -220,6 +221,7 @@ class qbapi:
         listjs = {}
         info = self.get_url('/api/v2/app/preferences')
         if info is None:
+            # raise Exception('Connect qb fail')
             pass
         elif info.status_code == 200:
             self.logger.debug('get preferences successfully')
