@@ -32,15 +32,32 @@ class AutoPT_TTG(AutoPT.AutoPT):
             login_data = {
                 'username': gl.get_value('logindata')[1]['username'],
                 'password': gl.get_value('logindata')[1]['password'],
-                'otp': gl.get_value('logindata')[1]['secondverify'],
+                # 'otp': gl.get_value('logindata')[1]['secondverify'],
                 'passan': '',
                 'passid': '0',
                 'lang': '0',
-                'rememberme': 'yes',
+                # 'rememberme': 'yes',
 
             }
             main_page = self._session.post(
                 self._root + 'takelogin.php', login_data, headers=self.headers, timeout=(30, 30))
+            if main_page.status_code == 200 and main_page.url == self._root + '2fa.php':
+                page = BeautifulSoup(main_page.text, 'lxml')
+                authcode = page.select('input[name=authenticity_token]')
+                if len(authcode) == 0:
+                    return False
+                authcode = authcode[0].attrs['value']
+                uid = page.select('input[name=uid]')
+                if len(uid) == 0:
+                    return False
+                uid = uid[0].attrs['value']
+                login_data = {
+                    'authenticity_token': authcode,
+                    'uid': uid,
+                    'otp': gl.get_value('logindata')[1]['secondverify'],
+                }
+                main_page = self._session.post(
+                    self._root + 'take2fa.php', login_data, headers=self.headers, timeout=(30, 30))
             if main_page.url != self._root + 'my.php':
                 self.logger.error('Login error')
                 return False
@@ -54,14 +71,14 @@ class AutoPT_TTG(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 3 * 60 * 60) and page.seeders < 20
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 10
             else:
-                return page.seeders < 20
+                return page.seeders < 10
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 3 * 60 * 60) and page.seeders < 50
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
             else:
-                return page.seeders < 50
+                return page.seeders < 20
 
     def attendance(self, page):
         try:
@@ -242,6 +259,6 @@ class AutoPT_Page_TTG(AutoPT.AutoPT_Page):
             self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
                 self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
         if self.method == 0:
-            return self.size < 512 and self.seeders > 0
+            return self.size < 32 and self.seeders > 0
         elif self.method == 1:
-            return self.size < 512 and self.seeders > 0
+            return self.size < 64 and self.seeders > 0
