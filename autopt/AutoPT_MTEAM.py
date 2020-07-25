@@ -35,18 +35,18 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
             }
             main_page = self._session.post(
                 self._root + 'takelogin.php', data=login_data, headers=header, timeout=(30, 30))
-            if main_page.status_code == 200:
+            if main_page.status_code == 200 and 'verify.php' in main_page.url:
                 login_data = {
                     'otp': gl.get_value('logindata')[1]['secondverify']
                 }
                 sec_page = self._session.post(
                     self._root + 'verify.php', login_data, headers=self.headers, timeout=(30, 30))
-                if sec_page.url != self._root + 'index.php':
-                    self.logger.error('Login error')
-                    return False
-                else:
-                    self._save()
-                    return True
+            if sec_page.url != self._root + 'index.php':
+                self.logger.error('Login error')
+                return False
+            else:
+                self._save()
+                return True
         except BaseException as e:
             self.logger.exception(traceback.format_exc())
             exit(4)
