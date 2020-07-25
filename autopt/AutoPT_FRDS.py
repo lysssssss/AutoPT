@@ -30,7 +30,7 @@ class AutoPT_FRDS(AutoPT.AutoPT):
             login_data = {
                 'username': gl.get_value('logindata')[1]['username'],
                 'password': gl.get_value('logindata')[1]['password'],
-                'token': '',
+                'token': gl.get_value('logindata')[1]['secondverify'],
 
             }
             main_page = self._session.post(
