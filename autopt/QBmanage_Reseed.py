@@ -33,8 +33,10 @@ class Manager(object):
         self._session.headers = {
             'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 Chrome/79.0.3945.16 Safari/537.36 Edg/79.0.309.11'
         }
+        # 4.1.9 -> 2.2.1
+        # 4.2.5 -> 2.5.1
         apiversion = self.qbapi.webapiVersion().strip()
-        if apiversion not in ['2.2.0', '2.2.1']:
+        if apiversion not in ['2.2.0', '2.2.1', '2.3.0', '2.4.0', '2.4.1', '2.5.0', '2.5.1']:
             self.logger.warning('不支持的qb api版本' + apiversion)
             exit(7)
 
