@@ -150,7 +150,9 @@ class Config(object):
         }
         self.qbtconfig = {
             'url': '',
-            'path': ''
+            'path': '',
+            'username': '',
+            'password': ''
         }
         if os.path.exists('config.json'):
             f = open('config.json', 'r', encoding='utf-8')
@@ -282,6 +284,14 @@ class Config(object):
                 self.qbtconfig['url'] = paras['url'][:-1] if paras['url'].endswith('/') else paras['url']
             else:
                 self.qbtconfig['url'] = ''
+            if 'username' in paras:
+                self.qbtconfig['username'] = paras['username']
+            else:
+                self.qbtconfig['username'] = ''
+            if 'password' in paras:
+                self.qbtconfig['password'] = paras['password']
+            else:
+                self.qbtconfig['password'] = ''
 
     def readreseedconfig(self, para):
         if 'ReSeed' in para:
@@ -335,7 +345,7 @@ class Config(object):
         return self.getnameconfig()[name.upper()]['uploadspeedlimit']
 
     @property
-    def qbaddr(self):
+    def qbtaddr(self):
         return self.qbtconfig['url']
 
     @property
@@ -345,6 +355,14 @@ class Config(object):
     @property
     def qbtpath(self):
         return self.qbtconfig['path']
+
+    @property
+    def qbtusername(self):
+        return self.qbtconfig['username']
+
+    @property
+    def qbtpassword(self):
+        return self.qbtconfig['password']
 
     @property
     def loglevel(self):

@@ -12,13 +12,17 @@ import tools.globalvar as gl
 
 
 class qbapi:
-    def __init__(self, root):
+    def __init__(self, root, username='', password=''):
         self._root = root
         self.logger = gl.get_value('logger').logger
         self._session = requests.session()
         self._session.headers = {
             'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 Chrome/79.0.3945.16 Safari/537.36 Edg/79.0.309.11'
         }
+        if username != '' and password != '':
+            if not self.login(username, password):
+                self.logger.warning('QBitTorrent Login Fails')
+                exit(8)
 
     def get_url(self, url):
         trytime = 3
@@ -41,6 +45,19 @@ class qbapi:
                 self.logger.debug(e)
                 trytime -= 1
                 time.sleep(5)
+
+    def login(self, username, password):
+        req = self.post_url('/api/v2/auth/login', {
+            'username': username,
+            'password': password
+        })
+        if req is None:
+            pass
+        elif req.status_code == 200 and req.text == 'Ok.':
+            return True
+        elif req.status_code == 403:
+            self.logger.error('User\'s IP is banned for too many failed login attempts')
+        return False
 
     def webapiVersion(self):
         info = self.get_url('/api/v2/app/webapiVersion')

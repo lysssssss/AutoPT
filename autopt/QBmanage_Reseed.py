@@ -24,7 +24,8 @@ class Manager(object):
         self.rechecklistname = basepath + 'ReChecklist.csv'
         self.reseedjsonname = basepath + 'ReSeedRecord.json'
         self.logger = gl.get_value('logger').logger
-        self.qbapi = qbapi(gl.get_value('config').qbaddr)
+        self.qbapi = qbapi(gl.get_value('config').qbtaddr, gl.get_value('config').qbtusername,
+                           gl.get_value('config').qbtpassword)
 
         self.recheckreport = RecheckReport()
         self.recheckallreport = RecheckAllReport()
