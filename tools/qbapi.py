@@ -201,6 +201,8 @@ class qbapi:
         return False
 
     def torrentsDelete(self, dellist, deldata=True):
+        if len(dellist) == 0:
+            return True
         if isinstance(dellist, list):
             dellist = "|".join(dellist)
         deldata = 'true' if deldata else 'false'

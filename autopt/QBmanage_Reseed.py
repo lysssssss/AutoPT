@@ -334,10 +334,11 @@ class Manager(object):
                 # 防止磁盘卡死,当磁盘碎片太多或磁盘负载重时此处会卡几到几十分钟
                 # while not self.gettorrentdlstatus(thash):
                 #     time.sleep(5)
-
+                time.sleep(2)
                 # 删除匹配的tracker,暂时每个种子都判断不管是哪个站点
                 self.removematchtracker(thash, 'pttrackertju.tjupt.org')
                 self.removematchtracker(thash, 'tracker-campus.tjupt.org')
+                #gl.get_value('wechat').send(text='添加种子中断检查tracker断点')
 
                 self.checktorrenttracker(thash)
                 # self.qbapi.resumeTorrents(thash)
@@ -733,8 +734,9 @@ class Manager(object):
             # 防止磁盘卡死,当磁盘碎片太多或磁盘负载重时此处会卡几到几十分钟
             # while not self.gettorrentdlstatus(rsinfo['hash']):
             #     time.sleep(5)
-
+            time.sleep(2)
             # 删除匹配的tracker,暂时每个种子都判断不管是哪个站点
+            # gl.get_value('wechat').send(text='添加种子中断检查tracker断点')
             self.removematchtracker(rsinfo['hash'], 'pttrackertju.tjupt.org')
             self.removematchtracker(rsinfo['hash'], 'tracker-campus.tjupt.org')
 
