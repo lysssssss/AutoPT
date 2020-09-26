@@ -1,8 +1,9 @@
 import time
 import traceback
+from io import BytesIO
 from urllib.parse import parse_qs, urlparse
 
-from bs4 import BeautifulSoup
+from PIL import Image
 
 import tools.globalvar as gl
 from autopt import AutoPT
@@ -14,6 +15,46 @@ class AutoPT_PTHOME(AutoPT.AutoPT):
     def __init__(self):
         super(AutoPT_PTHOME, self).__init__('PTHOME')
         self.autoptpage = AutoPT_Page_PTHOME
+
+    def login(self):
+        try:
+            login_page = self.get_url('login.php')
+            image_url = login_page.find('img', alt='CAPTCHA')['src']
+            image_hash = login_page.find(
+                'input', attrs={'name': 'imagehash'})['value']
+            self.logger.info('Image url: ' + image_url)
+            self.logger.info('Image hash: ' + image_hash)
+            req = self._session.get(self._root + image_url, timeout=(30, 30))
+            image_file = Image.open(BytesIO(req.content))
+            # image_file.show()
+            # captcha_text = input('If image can not open in your system, then open the url below in browser\n'
+            #                     + self._root + image_url + '\n' + 'Input Code:')
+            self.app.getlogindata(self.stationname, image_file)
+
+            # 取消登录，强制退出
+            if not gl.get_value('logindata')[0]:
+                exit('取消登录')
+
+            self.logger.debug('Captcha text: ' + gl.get_value('logindata')[1]['captcha'])
+
+            login_data = {
+                'username': gl.get_value('logindata')[1]['username'],
+                'password': gl.get_value('logindata')[1]['password'],
+                'imagestring': gl.get_value('logindata')[1]['captcha'],
+                'imagehash': image_hash,
+                'scode': gl.get_value('logindata')[1]['secondverify']
+            }
+            main_page = self._session.post(
+                self._root + 'takelogin.php', login_data, headers=self.headers, timeout=(30, 30))
+            if main_page.url != self._root + 'index.php':
+                self.logger.error('Login error')
+                return False
+            self._save()
+        except BaseException as e:
+            self.logger.exception(traceback.format_exc())
+            exit(4)
+            return False
+        return True
 
     def judgetorrentok(self, page):
         if page.method == 0:
