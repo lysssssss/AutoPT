@@ -259,6 +259,6 @@ class AutoPT_Page_TTG(AutoPT.AutoPT_Page):
             self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
                 self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
         if self.method == 0:
-            return self.size < 32 and self.seeders > 0
+            return self.size < 512 and self.seeders > 0
         elif self.method == 1:
-            return self.size < 64 and self.seeders > 0
+            return self.size < 1024 and self.seeders > 0

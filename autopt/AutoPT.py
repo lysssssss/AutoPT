@@ -227,7 +227,7 @@ class AutoPT(ABC):
                 self.logger.error('Download Error:')
 
         except BaseException as e:
-            self.logger.debug(e)
+            self.logger.error(e)
             # self.logger.exception(traceback.format_exc())
 
     def getdownload(self, id_):
