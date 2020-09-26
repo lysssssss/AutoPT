@@ -1,5 +1,5 @@
 import datetime
-
+import locale
 import wx
 import wx.adv
 from pubsub import pub
@@ -235,6 +235,7 @@ class MyWindows(wx.App):
         next_year = next_time.date().year
         next_month = next_time.date().month
         next_day = next_time.date().day
+        locale.setlocale(locale.LC_ALL, 'en')  # strptime前设置locale
         # 获取明天0点时间
         next_time = datetime.datetime.strptime(
             str(next_year) + "-" + str(next_month) + "-" + str(next_day) + " 00:00:00", "%Y-%m-%d %H:%M:%S")
