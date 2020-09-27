@@ -76,4 +76,9 @@ def calDictEnd(data, start):
                 start += 1
             if st.peek() != ord('i'):
                 start += 1 + num  # 冒号加字符串长度
+        elif data[start] == ord('-'):
+            start += 1
+        else:
+            gl.get_value('logger').logger.error('Unknow character in torrent')
+            exit(10)
     return start
