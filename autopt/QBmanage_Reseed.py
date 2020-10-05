@@ -1170,9 +1170,8 @@ class Manager(object):
         for val in info:
             if val['status'] == 0:
                 continue
-            for i in ['not registered', '被删除']:
-                if i in val['msg']:
-                    return True
+            if any(s in val['msg'] for s in ['not registered', '被删除', 'banned']):
+                return True
         return False
 
     def checkprttracker(self):
