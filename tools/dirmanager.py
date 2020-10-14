@@ -23,7 +23,10 @@ def deletedir(dirlist):
     if isinstance(dirlist, str):
         dirlist = [dirlist]
     for val in dirlist:
-        shutil.rmtree(val)
+        try:
+            shutil.rmtree(val)
+        except FileNotFoundError as e:
+            pass
 
 
 def getemptydirlist(path):
