@@ -102,7 +102,7 @@ class AutoPT_TTG(AutoPT.AutoPT):
         :returns: yield ByrPage pages
         """
         # free url
-        self.logger.debug('Get pages')
+        self.logger.debug('Get Media pages')
         filterurl = 'browse.php?c=M'
         page = self.get_url(filterurl)
         self.logger.debug('Get pages Done')
@@ -135,6 +135,44 @@ class AutoPT_TTG(AutoPT.AutoPT):
             self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
             if self.config['onlyattendance']:
                 self.logger.warning('仅签到失败')
+        elif recheckpage and self.config['onlyattendance']:
+            return
+        if not gl.get_value('thread_flag'):
+            return
+
+        self.logger.debug('Get Game&Ware pages')
+        filterurl = 'browse.php?c=G'
+        page = self.get_url(filterurl)
+        self.logger.debug('Get pages Done')
+        # 监测二次验证导致的登录问题
+        recheckpage = False
+        n = 1
+        try:
+            # 防止网页获取失败时的异常
+            for line in page.find('table', id='torrent_table').find_all('tr'):
+                # print(line)
+                # print('\n\n\n\n\n')
+                if n == 0:
+                    recheckpage = True
+                    if line.find('img', src='/pic/ico_2xfree.gif') is not None and \
+                            line.find('img', src='/pic/hit_run.gif') is None and not self.config['onlyattendance']:
+                        yield self.autoptpage(line, 1)
+                    elif line.find('img', src='/pic/ico_free.gif') is not None and \
+                            line.find('img', src='/pic/hit_run.gif') is None and not self.config['onlyattendance']:
+                        yield self.autoptpage(line)
+                else:
+                    n -= 1
+        except BaseException as e:
+            # self.logger.exception(traceback.format_exc())
+            self.logger.debug(e)
+        if not recheckpage:
+            self.logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!界面没有找到种子标签!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            if self.config['onlyattendance']:
+                self.logger.warning('仅签到失败')
+        elif recheckpage and self.config['onlyattendance']:
+            return
+        if not gl.get_value('thread_flag'):
+            return
 
     def get_url(self, url):
         """Return BeautifulSoup Pages
