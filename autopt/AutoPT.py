@@ -235,7 +235,7 @@ class AutoPT(ABC):
         :url: url
         :filename: torrent filename
         """
-        url = self._root + 'download.php?id=' + id_
+        url = self._root + 'download.php?' + self.config['urlparam'] + 'id=' + id_
         trytime = 0
         req = None
 
@@ -262,7 +262,7 @@ class AutoPT(ABC):
         """
         if isinstance(id_, int):
             id_ = str(id_)
-        url = self._root + 'download.php?id=' + id_ + '&passkey=' + self.psk
+        url = self._root + 'download.php?' + self.config['urlparam'] + 'id=' + id_ + '&passkey=' + self.psk
         trytime = 0
         req = None
 

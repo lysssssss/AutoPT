@@ -57,6 +57,7 @@ class Config(object):
             'intervaltime': 30,
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
+            'urlparam': '',
             'root': 'https://bt.byr.cn/'
         }
         self.tjuconfig = {
@@ -72,6 +73,7 @@ class Config(object):
             'intervaltime': 30,
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
+            'urlparam': '',
             'root': 'https://www.tjupt.org/'
         }
         self.pterconfig = {
@@ -87,6 +89,7 @@ class Config(object):
             'intervaltime': 30,
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
+            'urlparam': '',
             'root': 'https://pterclub.com/'
         }
         self.mteamconfig = {
@@ -102,6 +105,7 @@ class Config(object):
             'intervaltime': 30,
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
+            'urlparam': 'https=1&',
             'root': 'https://pt.m-team.cc/'
         }
         self.pthomeconfig = {
@@ -117,6 +121,7 @@ class Config(object):
             'intervaltime': 30,
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
+            'urlparam': '',
             'root': 'https://www.pthome.net/'
         }
         self.frdsconfig = {
@@ -133,6 +138,7 @@ class Config(object):
             'intervaltime': 30,
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
+            'urlparam': '',
             'root': 'https://pt.keepfrds.com/'
         }
         self.ttgconfig = {
@@ -149,6 +155,7 @@ class Config(object):
             'intervaltime': 30,
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
+            'urlparam': '',
             'root': 'https://totheglory.im/'
         }
         self.lemonhdconfig = {
@@ -165,6 +172,7 @@ class Config(object):
             'intervaltime': 30,
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
+            'urlparam': 'https=1&',
             'root': 'https://lemonhd.org/'
         }
         self.qbtconfig = {
