@@ -1031,6 +1031,7 @@ class Manager(object):
                     rspstream, rspres = self.stationref[getsidname(val['sid'])].getdownloadbypsk(str(val['tid']))
                     if rspres:
                         # 种子下载有问题的时候name空的，有一定几率会误判种子下载成功了，和网络状况有关
+                        # 另一种情况是，误判了种子下载成功，其实此种子被删除了，获取到的是html的内容
                         if get_torrent_name(rspstream.content) is None:
                             self.recheckallreport.failnum += 1
                             continue

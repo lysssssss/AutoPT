@@ -12,6 +12,7 @@ from autopt.AutoPT_PTER import AutoPT_PTER
 from autopt.AutoPT_PTHOME import AutoPT_PTHOME
 from autopt.AutoPT_TJU import AutoPT_TJU
 from autopt.AutoPT_TTG import AutoPT_TTG
+from autopt.AutoPT_LEMONHD import AutoPT_LEMONHD
 from autopt.QBmanage_Reseed import Manager
 from tools import Myconfig, Mylogger, BGIcon
 from tools import globalvar as gl
@@ -29,6 +30,7 @@ def run():
         auto_pthome = None
         auto_frds = None
         auto_ttg = None
+        auto_lemonhd = None
 
         Runqbittorrent()
 
@@ -41,7 +43,8 @@ def run():
                 'pter': auto_pter,
                 'pthome': auto_pthome,
                 'frds': auto_frds,
-                'ttg': auto_ttg
+                'ttg': auto_ttg,
+                'lemonhd': auto_lemonhd,
             }
         }
         gl.set_value('allref', refconfig)
@@ -59,35 +62,33 @@ def run():
         refconfig['ref']['frds'] = auto_frds
         auto_ttg = AutoPT_TTG()
         refconfig['ref']['ttg'] = auto_ttg
+        auto_lemonhd = AutoPT_LEMONHD()
+        refconfig['ref']['lemonhd'] = auto_lemonhd
 
         if gl.get_value('config').switch('byr'):
-            # auto_byr = AutoPT_BYR()
             if maxtime % gl.get_value('config').intervaltime('byr') != 0:
                 maxtime *= gl.get_value('config').intervaltime('byr')
         if gl.get_value('config').switch('tju'):
-            # auto_tju = AutoPT_TJU()
             if maxtime % gl.get_value('config').intervaltime('tju') != 0:
                 maxtime *= gl.get_value('config').intervaltime('tju')
         if gl.get_value('config').switch('pter'):
-            # auto_pter = AutoPT_PTER()
             if maxtime % gl.get_value('config').intervaltime('pter') != 0:
                 maxtime *= gl.get_value('config').intervaltime('pter')
         if gl.get_value('config').switch('mteam'):
-            # auto_mteam = AutoPT_MTEAM()
             if maxtime % gl.get_value('config').intervaltime('mteam') != 0:
                 maxtime *= gl.get_value('config').intervaltime('mteam')
         if gl.get_value('config').switch('pthome'):
-            # auto_pthome = AutoPT_PTHOME()
             if maxtime % gl.get_value('config').intervaltime('pthome') != 0:
                 maxtime *= gl.get_value('config').intervaltime('pthome')
         if gl.get_value('config').switch('frds'):
-            # auto_pthome = AutoPT_FRDS()
             if maxtime % gl.get_value('config').intervaltime('frds') != 0:
                 maxtime *= gl.get_value('config').intervaltime('frds')
         if gl.get_value('config').switch('ttg'):
-            # auto_pthome = AutoPT_TTG)
             if maxtime % gl.get_value('config').intervaltime('ttg') != 0:
                 maxtime *= gl.get_value('config').intervaltime('ttg')
+        if gl.get_value('config').switch('lemonhd'):
+            if maxtime % gl.get_value('config').intervaltime('lemonhd') != 0:
+                maxtime *= gl.get_value('config').intervaltime('lemonhd')
 
         manager = Manager()
         if maxtime % (6 * 3600) != 0:
@@ -95,13 +96,17 @@ def run():
 
         counttime = 0
         while gl.get_value('thread_flag'):
-            if gl.get_value('config').switch('reseed') and counttime % 120 == 0:
-                manager.checkalltorrentexist()
-                manager.recheck()
-            if gl.get_value('config').switch('reseed') and counttime % (3 * 3600) == 0:
-                manager.checkprttracker()
-                manager.recheckall()
-                manager.checkemptydir()
+            # if gl.get_value('config').switch('reseed') and counttime % 120 == 0:
+            #     manager.checkalltorrentexist()
+            #     manager.recheck()
+            # if gl.get_value('config').switch('reseed') and counttime % (3 * 3600) == 0:
+            #     manager.checkprttracker()
+            #     manager.recheckall()
+            #     manager.checkemptydir()
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('lemonhd') and counttime % gl.get_value(
+                    'config').intervaltime('lemonhd') == 0:
+                auto_lemonhd.start()
+                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('ttg') and counttime % gl.get_value(
                     'config').intervaltime('ttg') == 0:
                 auto_ttg.start()

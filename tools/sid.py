@@ -13,6 +13,7 @@ sidlist = {
     5: 'tju',
     6: 'pter',
     14: 'ttg',
+    26: 'lemonhd',
     45: 'byr',
 }
 

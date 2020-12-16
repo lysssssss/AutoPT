@@ -210,5 +210,32 @@
     ],
     "KeepTorrentTime": 168
     //种子多久时间内不会被删除,自添加开始计算,默认一星期,单位:小时
+  },
+  "LEMONHD": {
+    "switch": false,
+    //总开关
+    "onlyAttendance": false,
+    //仅签到模式
+    "IntervalTime": 30,
+    //检查PT站的时间间隔,单位：分钟 默认30分钟
+    "passkey": "",
+    //站点passkey，用于辅种功能
+    "CapacityNum": -1,
+    // 下载目录最大容量,容量不够时会自动删种 默认0且不开启磁盘管理,-1为根据磁盘剩余容量动态变化
+    "CapacityUint": "gb",
+    //容量单位,只能GB或TB,不区分大小写,始终以字节为单位 默认GB
+
+    //自动下载的种子会自动归类到第一个分类下,如需要接管其他分类,在数组里追加即可 默认未分类
+    //接管的分类必须与第一个分类处于同一个分区下,否则不接管
+    "MainCategory": [
+      "LEMONHD",
+      "PTHOME",
+      "PTER",
+      "TJU",
+      "BYR",
+      "MTeam"
+    ],
+    "KeepTorrentTime": 168
+    //种子多久时间内不会被删除,自添加开始计算,默认一星期,单位:小时
   }
 }

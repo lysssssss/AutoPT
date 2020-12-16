@@ -20,6 +20,8 @@ class Config(object):
             return self.pthomeconfig
         elif key.upper() == 'FRDS':
             return self.frdsconfig
+        elif key.upper() == 'LEMONHD':
+            return self.lemonhdconfig
         elif key.upper() == 'TTG':
             return self.ttgconfig
         elif key.upper() == 'ALL':
@@ -30,7 +32,8 @@ class Config(object):
                 'MTEAM': self.mteamconfig,
                 'PTHOME': self.pthomeconfig,
                 'FRDS': self.frdsconfig,
-                'TTG': self.ttgconfig
+                'TTG': self.ttgconfig,
+                'LEMONHD': self.lemonhdconfig,
             }
         else:
             return {}
@@ -148,6 +151,22 @@ class Config(object):
             'uploadspeedlimit': 0,
             'root': 'https://totheglory.im/'
         }
+        self.lemonhdconfig = {
+            'switch': False,
+            'onlyattendance': False,
+            'name': 'TTG',
+            'passkey': '',
+            'level': 0,
+            'maincategory': '',
+            'subcategory': [],
+            'capacity': 0,
+            'capacityuint': 'GB',
+            'capacitynum': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
+            'root': 'https://lemonhd.org/'
+        }
         self.qbtconfig = {
             'url': '',
             'path': '',
@@ -169,6 +188,7 @@ class Config(object):
             self.readpthomeconfig(paras)
             self.readfrdsconfig(paras)
             self.readttgconfig(paras)
+            self.readlemonhdconfig(paras)
             self.readreseedconfig(paras)
         else:
             self._logsavetime = 7
@@ -224,6 +244,12 @@ class Config(object):
         if 'TTG' in param:
             paras = param['TTG']
             self.readcommonconfig(paras, self.ttgconfig)
+            # To add custom config here
+
+    def readlemonhdconfig(self, param):
+        if 'LEMONHD' in param:
+            paras = param['LEMONHD']
+            self.readcommonconfig(paras, self.lemonhdconfig)
             # To add custom config here
 
     def readcommonconfig(self, paras, pt_config):
@@ -314,6 +340,7 @@ class Config(object):
             'PTHOME': self.pthomeconfig,
             'FRDS': self.frdsconfig,
             'TTG': self.ttgconfig,
+            'LEMONHD': self.lemonhdconfig,
             'RESEED': self.reseedconfig
         }
 
