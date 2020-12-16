@@ -1,6 +1,7 @@
 import time
 import traceback
 from io import BytesIO
+from urllib.parse import parse_qs, urlparse
 
 from PIL import Image
 from bs4 import BeautifulSoup
@@ -59,14 +60,14 @@ class AutoPT_LEMONHD(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
+                return (page.futherstamp - time.time() > 22 * 60 * 60) and page.seeders < 3
+            else:
+                return page.seeders < 3
+        elif page.method == 1:
+            if page.futherstamp != -1:
                 return (page.futherstamp - time.time() > 22 * 60 * 60) and page.seeders < 5
             else:
                 return page.seeders < 5
-        elif page.method == 1:
-            if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 22 * 60 * 60) and page.seeders < 10
-            else:
-                return page.seeders < 10
 
     def attendance(self, page):
         try:
@@ -135,8 +136,23 @@ class AutoPT_Page_LEMONHD(AutoPT.AutoPT_Page):
         """Init variables
         :soup: Soup
         """
-        super(AutoPT_Page_LEMONHD, self).__init__(soup, method)
         try:
+            self.logger = gl.get_value('logger').logger
+            self.method = method
+            url = soup.find(class_='torrentname').a['href']
+            self.name = soup.find(class_='torrentname').b.text
+            # 注意，字符串中间这个不是空格
+            if self.name.endswith('[email protected]'):
+                self.name = self.name[:len('[email protected]') * -1]
+            self.type = soup.img['title']
+            self.createtime = soup.find_all('td')[-7].text
+            self.createtimestamp = self.totimestamp(self.createtime)
+            self.size = self.tosize(soup.find_all('td')[-6].text)
+            self.seeders = int(soup.find_all('td')[-5].text.replace(',', ''))
+            self.leechers = int(soup.find_all('td')[-4].text.replace(',', ''))
+            self.snatched = int(soup.find_all('td')[-3].text.replace(',', ''))
+            self.id = parse_qs(urlparse(url).query)['id'][0]
+            self.futherstamp = -1
             self.lefttime = [tmp_span.text for tmp_span
                              in soup.find(class_='torrentname').find_all('span')
                              if self.matchlefttimestr(tmp_span.text)]
@@ -161,6 +177,6 @@ class AutoPT_Page_LEMONHD(AutoPT.AutoPT_Page):
             self.id + ',' + self.name + ',' + self.type + ',' + self.createtime + ',' + str(self.size) + 'GB,' + str(
                 self.seeders) + ',' + str(self.leechers) + ',' + str(self.snatched) + ',' + str(self.lefttime))
         if self.method == 0:
-            return self.size < 128 and 0 < self.seeders < 3
+            return self.size < 128 and 0 < self.seeders
         elif self.method == 1:
-            return self.size < 256 and 0 < self.seeders < 3
+            return self.size < 256 and 0 < self.seeders
