@@ -44,7 +44,7 @@ class MyTaskBarIcon(wx.adv.TaskBarIcon):
     # “关于”选项的事件处理器
     def onAbout(self, event):
         self.logger.debug('菜单关于 点击事件')
-        wx.MessageBox('程序作者：LYS\n最后更新日期：2020年1月30日\nGitHub：https://github.com/lysssssss/AutoPT', "关于")
+        wx.MessageBox('程序作者：LYS\n最后更新日期：2020年12月16日\nGitHub：https://github.com/lysssssss/AutoPT', "关于")
 
     # “退出”选项的事件处理器
     def onExit(self, event):
