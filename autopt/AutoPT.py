@@ -269,8 +269,8 @@ class AutoPT(ABC):
         while trytime < 3:
             try:
                 req = self._session.get(url, timeout=(30, 60))
-
-                if req.status_code == 200:
+                #  60为b'<', 如果get出来的是html而不是种子字节流说明种子被删除了或其他原因
+                if req.status_code == 200 and req.content[0] != 60:
                     # 第二个返回值为这种子是否还存在的标志，提供的是接口
                     return req, True
                 elif req.status_code == 404:
@@ -279,7 +279,7 @@ class AutoPT(ABC):
                 else:
                     trytime += 1
                     self.logger.error('Download Fail trytime = ' + str(trytime))
-                    time.sleep(10)
+                    time.sleep(3)
             except BaseException as e:
                 self.logger.error('Download Fail trytime = ' + str(trytime))
                 trytime += 1
