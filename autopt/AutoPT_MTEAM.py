@@ -2,8 +2,6 @@ import time
 import traceback
 from urllib.parse import parse_qs, urlparse
 
-from bs4 import BeautifulSoup
-
 import tools.globalvar as gl
 from autopt import AutoPT
 
@@ -200,37 +198,6 @@ class AutoPT_MTEAM(AutoPT.AutoPT):
                 self.logger.warning('仅签到失败')
         elif recheckpage and self.config['onlyattendance']:
             return
-
-    def getdownloadbypsk(self, id_):
-        """Download torrent in url
-        :url: url
-        :filename: torrent
-        """
-        if isinstance(id_, int):
-            id_ = str(id_)
-        url = self._root + 'download.php?id=' + id_ + '&passkey=' + self.psk + '&ipv6=1&https=1'
-        trytime = 0
-        req = None
-
-        while trytime < 3:
-
-            try:
-                req = self._session.get(url, timeout=(30, 60))
-                if req.status_code == 200:
-                    return req, True
-                elif req.status_code == 404:
-                    # MT 该种子不存在
-                    return req, False
-                else:
-                    trytime += 1
-                    self.logger.error('Download Fail trytime = ' + str(trytime))
-                    time.sleep(3)
-            except BaseException as e:
-                self.logger.error('Download Fail trytime = ' + str(trytime))
-                trytime += 1
-                #self.logger.exception(traceback.format_exc())
-                self.logger.debug(e)
-        return req, False
 
 
 class AutoPT_Page_MTEAM(AutoPT.AutoPT_Page):
