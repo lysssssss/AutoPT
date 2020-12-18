@@ -71,20 +71,18 @@ class AutoPT_LEMONHD(AutoPT.AutoPT):
 
     def attendance(self, page):
         try:
-            if page.find('a', id='do-attendance') is not None:
+            if page.find('a', href='attendance.php') is not None:
                 self.logger.info('尝试签到...')
-                info = self._session.get(self._root + 'attendance-ajax.php', timeout=(30, 30))
-                if info.json()['status'] == '1':
-                    #  self.logger.info(info.json()['data'])
-                    self.logger.info(BeautifulSoup(info.json()['message'], 'lxml').text)
-                else:
-                    self.logger.warning(info.json()['data'])
-                    self.logger.warning(info.json()['message'])
-                    self.logger.error('签到失败,未知原因')
+                info = self.get_url('attendance.php')
+                for line in info.find_all('td', class_='text'):
+                    if '本次签到' in str(line):
+                        self.logger.info(line.text)
+                        return True
+                self.logger.error('签到失败,未知原因')
         except BaseException as e:
             self.logger.error('签到失败,发生异常')
-            # self.logger.exception(traceback.format_exc())
             self.logger.debug(e)
+        return False
 
     @property
     def pages(self):
@@ -98,7 +96,7 @@ class AutoPT_LEMONHD(AutoPT.AutoPT):
         self.logger.debug('Get pages Done')
 
         # 自动签到
-        # self.attendance(page)
+        self.attendance(page)
 
         # 监测二次验证导致的登录问题
         recheckpage = False
