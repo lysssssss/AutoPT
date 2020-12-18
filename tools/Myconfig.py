@@ -52,7 +52,7 @@ class Config(object):
             'maincategory': '',
             'subcategory': [],
             'capacity': 0,
-            'capacityuint': 'GB',
+            'capacityuint': 'TB',
             'capacitynum': 0,
             'intervaltime': 30,
             'keeptorrenttime': 168,
@@ -68,7 +68,7 @@ class Config(object):
             'maincategory': '',
             'subcategory': [],
             'capacity': 0,
-            'capacityuint': 'GB',
+            'capacityuint': 'TB',
             'capacitynum': 0,
             'intervaltime': 30,
             'keeptorrenttime': 168,
@@ -84,7 +84,7 @@ class Config(object):
             'maincategory': '',
             'subcategory': [],
             'capacity': 0,
-            'capacityuint': 'GB',
+            'capacityuint': 'TB',
             'capacitynum': 0,
             'intervaltime': 30,
             'keeptorrenttime': 168,
@@ -100,7 +100,7 @@ class Config(object):
             'maincategory': '',
             'subcategory': [],
             'capacity': 0,
-            'capacityuint': 'GB',
+            'capacityuint': 'TB',
             'capacitynum': 0,
             'intervaltime': 30,
             'keeptorrenttime': 168,
@@ -116,7 +116,7 @@ class Config(object):
             'maincategory': '',
             'subcategory': [],
             'capacity': 0,
-            'capacityuint': 'GB',
+            'capacityuint': 'TB',
             'capacitynum': 0,
             'intervaltime': 30,
             'keeptorrenttime': 168,
@@ -133,7 +133,7 @@ class Config(object):
             'maincategory': '',
             'subcategory': [],
             'capacity': 0,
-            'capacityuint': 'GB',
+            'capacityuint': 'TB',
             'capacitynum': 0,
             'intervaltime': 30,
             'keeptorrenttime': 168,
@@ -150,7 +150,7 @@ class Config(object):
             'maincategory': '',
             'subcategory': [],
             'capacity': 0,
-            'capacityuint': 'GB',
+            'capacityuint': 'TB',
             'capacitynum': 0,
             'intervaltime': 30,
             'keeptorrenttime': 168,
@@ -167,7 +167,7 @@ class Config(object):
             'maincategory': '',
             'subcategory': [],
             'capacity': 0,
-            'capacityuint': 'GB',
+            'capacityuint': 'TB',
             'capacitynum': 0,
             'intervaltime': 30,
             'keeptorrenttime': 168,
@@ -267,7 +267,7 @@ class Config(object):
             pt_config['onlyattendance'] = paras['onlyAttendance']
         if 'IntervalTime' in paras:
             if pt_config['onlyattendance']:
-                # 只签到模式，6小时访问一下
+                # 只签到模式，间隔6小时访问一次
                 pt_config['intervaltime'] = 60 * 60 * 6
             else:
                 pt_config['intervaltime'] = paras['IntervalTime'] * 60
