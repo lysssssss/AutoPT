@@ -1,4 +1,6 @@
 # AutoPT  
+![stars](https://img.shields.io/github/stars/lysssssss/AutoPT)![forks](https://img.shields.io/github/forks/lysssssss/AutoPT)  
+
 ## 简介  
 This is a program for auto download PT torrents. It uses QBittorrent to manage torrents and disk capacity.  
 此程序用于自动下载PT免费种子，并自动辅种和一体化管理。开发目的为了释放双手，专注观影！  
