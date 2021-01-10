@@ -1148,7 +1148,7 @@ class Manager(object):
         if qbconfig['save_path'] != '':
             pathlist.append(qbconfig['save_path'])
         pathlist2 = []
-        for val in pathlist:
+        for val in set(pathlist):
             if not val.endswith('\\'):
                 val = val + '\\'
             pathlist2.append(val + 'ReSeed')
