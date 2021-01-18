@@ -53,12 +53,14 @@ class Manager(object):
         self.stationref = gl.get_value('allref')['ref']
         self.dlcategory = []
         self.allcategory = []
-        self.getallcategory()
+        self.getallcategory(gl.get_value('config').qbtignore)
 
-    def getallcategory(self):
+    def getallcategory(self, ignore: []):
         listjs = self.qbapi.category()
 
         for key, value in listjs.items():
+            if key in ignore:
+                continue
             self.allcategory.append(key)
         allconfig = gl.get_value('config')['all']
         for key, value in allconfig.items():
@@ -103,7 +105,7 @@ class Manager(object):
 
             diskremainsize = 1048576  # 设置无穷大的磁盘大小为1PB=1024*1024GB
             if self.diskletter != '':
-                # 留出1G容量防止空间分配失败
+                # 留出50G容量防止空间分配失败
                 diskremainsize = self.getdiskleftsize(self.diskletter) - 50 - (pretotalsize - nowtotalsize)
                 self.logger.debug('diskremainsize =' + str(diskremainsize) + 'GB')
             self.dynamiccapacity = self.config['capacity'] \
@@ -338,7 +340,7 @@ class Manager(object):
                 # 删除匹配的tracker,暂时每个种子都判断不管是哪个站点
                 self.removematchtracker(thash, 'pttrackertju.tjupt.org')
                 self.removematchtracker(thash, 'tracker-campus.tjupt.org')
-                #gl.get_value('wechat').send(text='添加种子中断检查tracker断点')
+                # gl.get_value('wechat').send(text='添加种子中断检查tracker断点')
 
                 self.checktorrenttracker(thash)
                 # self.qbapi.resumeTorrents(thash)
@@ -988,7 +990,9 @@ class Manager(object):
                 reseedalllist.append(val['hash'])
         qblist = self.qbapi.torrentsInfo(filter='completed')
         for val in qblist:
-            if val['category'] == 'Reseed':  # 不收集辅种分类，否则可能会导致在辅种中再辅种的问题
+            if val['category'] == 'Reseed' or val['category'] in gl.get_value('config').qbtignore:  # 不收集辅种分类和忽略分类，否则可能会导致在辅种中再辅种的问题
+                continue
+            if val['state'] == 'missingFiles':  # 跳过丢失文件的种子
                 continue
             if not val['hash'] in reseedalllist:
                 reseedlist[val['hash']] = {
@@ -1142,6 +1146,8 @@ class Manager(object):
         category = self.qbapi.category()
         pathlist = []
         for k, v in category.items():
+            if k in gl.get_value('config').qbtignore:  # 跳过忽略分类
+                continue
             if v['savePath'] != '':
                 pathlist.append(v['savePath'].replace('/', '\\'))
         qbconfig = self.qbapi.getApplicationPreferences()

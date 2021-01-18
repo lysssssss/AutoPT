@@ -5,7 +5,10 @@
     "password": "",
 
     //qbittorrent.exe路径,若QB没有运行则会通过此路径运行,留空则不自动运行
-    "path": "C:\\Program Files\\qBittorrent\\qbittorrent.exe"
+    "path": "C:\\Program Files\\qBittorrent\\qbittorrent.exe",
+
+    //不检查tracker、不辅种的目录
+    "ignore": [""]
   },
   //辅种功能
   "ReSeed": {

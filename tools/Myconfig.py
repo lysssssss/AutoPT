@@ -179,7 +179,8 @@ class Config(object):
             'url': '',
             'path': '',
             'username': '',
-            'password': ''
+            'password': '',
+            'ignore': []
         }
         if os.path.exists('config.json'):
             f = open('config.json', 'r', encoding='utf-8')
@@ -326,6 +327,10 @@ class Config(object):
                 self.qbtconfig['password'] = paras['password']
             else:
                 self.qbtconfig['password'] = ''
+            if 'ignore' in paras:
+                self.qbtconfig['ignore'] = paras['ignore']
+            else:
+                self.qbtconfig['ignore'] = []
 
     def readreseedconfig(self, para):
         if 'ReSeed' in para:
@@ -398,6 +403,10 @@ class Config(object):
     @property
     def qbtpassword(self):
         return self.qbtconfig['password']
+
+    @property
+    def qbtignore(self):
+        return self.qbtconfig['ignore']
 
     @property
     def loglevel(self):
