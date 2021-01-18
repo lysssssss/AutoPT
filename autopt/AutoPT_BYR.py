@@ -19,14 +19,14 @@ class AutoPT_BYR(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 2
+                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders <= 2
             else:
-                return page.seeders < 2
+                return page.seeders <= 2
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 3
+                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders <= 3
             else:
-                return page.seeders < 3
+                return page.seeders <= 3
 
 
 class AutoPT_Page_BYR(AutoPT.AutoPT_Page):

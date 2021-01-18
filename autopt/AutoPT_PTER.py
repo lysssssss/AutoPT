@@ -59,14 +59,14 @@ class AutoPT_PTER(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 1
+                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders <= 1
             else:
-                return page.seeders < 1
+                return page.seeders <= 1
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders < 2
+                return (page.futherstamp - time.time() > 12 * 60 * 60) and page.seeders <= 2
             else:
-                return page.seeders < 2
+                return page.seeders <= 2
 
     def attendance(self, page):
         try:
