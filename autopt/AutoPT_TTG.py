@@ -71,14 +71,14 @@ class AutoPT_TTG(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 10
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 2
             else:
-                return page.seeders < 10
+                return page.seeders < 2
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 20
+                return (page.futherstamp - time.time() > 5 * 60 * 60) and page.seeders < 3
             else:
-                return page.seeders < 20
+                return page.seeders < 3
 
     def attendance(self, page):
         try:

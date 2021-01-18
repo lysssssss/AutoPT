@@ -60,14 +60,14 @@ class AutoPT_LEMONHD(AutoPT.AutoPT):
     def judgetorrentok(self, page):
         if page.method == 0:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 22 * 60 * 60) and page.seeders < 3
+                return (page.futherstamp - time.time() > 24 * 60 * 60) and page.seeders < 1
             else:
-                return page.seeders < 3
+                return page.seeders < 1
         elif page.method == 1:
             if page.futherstamp != -1:
-                return (page.futherstamp - time.time() > 22 * 60 * 60) and page.seeders < 5
+                return (page.futherstamp - time.time() > 24 * 60 * 60) and page.seeders < 2
             else:
-                return page.seeders < 5
+                return page.seeders < 2
 
     def attendance(self, page):
         try:
