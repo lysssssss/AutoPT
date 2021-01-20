@@ -495,16 +495,19 @@ class Manager(object):
             self.logger.debug('此种子已在其他目录！')
 
     def createhardfiles(self, srcpath, srcname, content, dst, hash, name):
-
+        #  防止文件名里符号/\:*?"<>|,这在文件里是不允许存在的,将会被qb设置成_
+        name = name.replace('/', '_').replace('\\', '_').replace(':', '_').replace('*', '_') \
+            .replace('?', '_').replace('"', '_').replace('<', '_').replace('>', '_').replace('|', '_')
         dst = dst + hash
         # if os.path.exists(dst+hash):
         #     return
-        if len(content) == 0:
-            self.logger.error('路径为空，创建失败')
         for idx, val in enumerate(content):
             content[idx]['name'] = content[idx]['name'].replace('/', '\\')
+        if len(content) == 0:
+            self.logger.error('路径为空，创建失败')
+            return False
         # 判断\\防止目录+单文件形式
-        if len(content) == 1 and (not '\\' in content[0]['name']):
+        elif len(content) == 1 and (not '\\' in content[0]['name']):
             os.makedirs('\\\\?\\' + dst, exist_ok=True)
             try:
                 os.link('\\\\?\\' + srcpath + content[0]['name'], '\\\\?\\' + dst + '\\' + name)
@@ -516,12 +519,17 @@ class Manager(object):
                     os.link('\\\\?\\' + srcpath + content[0]['name'] + '.!qB', '\\\\?\\' + dst + '\\' + name)
                 except FileExistsError as _e:
                     self.logger.error(_e)
+                except BaseException as _e:
+                    self.logger.error(_e)
+                    return False
+
         else:
             dst = dst + '\\' + name
             srcnamelen = len(srcname)
             # os.makedirs(dst, exist_ok=True)
             for val in content:
                 dirname, basename = os.path.split(val['name'])
+
                 os.makedirs('\\\\?\\' + dst + dirname[srcnamelen:], exist_ok=True)
                 try:
                     os.link('\\\\?\\' + srcpath + val['name'],
@@ -535,6 +543,9 @@ class Manager(object):
                                 '\\\\?\\' + dst + dirname[srcnamelen:] + '\\' + basename)
                     except FileExistsError as _e:
                         self.logger.error(_e)
+                    except BaseException as _e:
+                        self.logger.error(_e)
+                        return False
         return True
 
     def changerstcategory(self, ptinfo, rtinfo, rtstationname=None, rtcategory=None):
@@ -990,7 +1001,8 @@ class Manager(object):
                 reseedalllist.append(val['hash'])
         qblist = self.qbapi.torrentsInfo(filter='completed')
         for val in qblist:
-            if val['category'] == 'Reseed' or val['category'] in gl.get_value('config').qbtignore:  # 不收集辅种分类和忽略分类，否则可能会导致在辅种中再辅种的问题
+            if val['category'] == 'Reseed' or val['category'] in gl.get_value(
+                    'config').qbtignore:  # 不收集辅种分类和忽略分类，否则可能会导致在辅种中再辅种的问题
                 continue
             if val['state'] == 'missingFiles':  # 跳过丢失文件的种子
                 continue
