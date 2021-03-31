@@ -9,4 +9,4 @@ magneturi==1.3
 beautifulsoup4==4.9.1
 bencode==1.0
 pubsub==0.1.2
-lxml==4.5.2
+lxml==4.6.3
