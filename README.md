@@ -14,8 +14,8 @@ Works on QBittorrent version 4.1.9-4.2.5, Windows 10
 支持win10下使用QB4.1.9-4.2.5版本。(其他版本不一定兼容)  
 
 ## 支持站点  
-Support PT Station: BYR, TJU, PTER, MTeam, PTHome, FRDS, TTG, LEMONHD  
-暂时支持北邮、北洋、猫站、馒头、铂金、朋、套、柠檬, 拿到药后再支持更多.  
+Support PT Station: BYR, TJU, PTER, MTeam, PTHome, FRDS, TTG, LEMONHD, SoulVoice  
+暂时支持北邮、北洋、猫站、馒头、铂金、朋、套、柠檬、聆音，拿到药后再支持更多.  
 
 食用教程  
 =
