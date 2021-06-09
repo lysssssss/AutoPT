@@ -37,7 +37,8 @@ class Manager(object):
         # 4.1.9 -> 2.2.1
         # 4.2.5 -> 2.5.1
         apiversion = self.qbapi.webapiVersion().strip()
-        if apiversion not in ['2.2.0', '2.2.1', '2.3.0', '2.4.0', '2.4.1', '2.5.0', '2.5.1']:
+        if apiversion not in ['2.2.0', '2.2.1', '2.3.0', '2.4.0', '2.4.1', '2.5.0', '2.5.1', '2.6.0', '2.6.1', '2.6.1',
+                              '2.8.0', '2.8.1', '2.8.2']:
             self.logger.warning('不支持的qb api版本' + apiversion)
             exit(7)
 
@@ -507,7 +508,7 @@ class Manager(object):
             self.logger.error('路径为空，创建失败')
             return False
         # 判断\\防止目录+单文件形式
-        elif len(content) == 1 and (not '\\' in content[0]['name']):
+        elif len(content) == 1 and ('\\' not in content[0]['name']):
             os.makedirs('\\\\?\\' + dst, exist_ok=True)
             try:
                 os.link('\\\\?\\' + srcpath + content[0]['name'], '\\\\?\\' + dst + '\\' + name)
@@ -731,6 +732,8 @@ class Manager(object):
                 filterdstpath = ''
                 for i in range(0, len(filelist) + pos):
                     filterdstpath += filelist[i] + '\\'
+        if not ptinfo['save_path'].endswith('\\'):
+            ptinfo['save_path'] += '\\'
         if not self.createhardfiles(ptinfo['save_path'], ptinfo['name'], dircontent, filterdstpath + 'ReSeed\\',
                                     rsinfo['hash'][:6],
                                     get_torrent_name(content)):
