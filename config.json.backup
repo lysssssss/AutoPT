@@ -245,6 +245,34 @@
     //保留种子时间(不会被删除),默认一星期,单位:小时
     "KeepTorrentTime": 168
   },
+  "SoulVoice": {
+    //总开关
+    "switch": false,
+    //仅签到模式
+    "onlyAttendance": false,
+    //扫描站点种子时间间隔,单位：分钟 默认30分钟
+    "IntervalTime": 30,
+    //站点passkey，用于辅种下种
+    "passkey": "",
+
+    // 此站点总种子大小容量,容量不够时会自动删种 默认0且不开启磁盘容量管理,-1为根据磁盘剩余容量动态变化
+    // 单位：TB
+    "CapacityNum": -1,
+
+    //种子会保存在第一个分类,如需要接管其他分类,在后面追加即可。 默认未分类
+    //接管的分类必须与第一个分类处于同一个分区下(即在同一个磁盘分区),否则不接管
+    "MainCategory": [
+      "SoulVoice",
+      "PTHOME",
+      "PTER",
+      "TJU",
+      "BYR",
+      "MTeam"
+    ],
+
+    //保留种子时间(不会被删除),默认一星期,单位:小时
+    "KeepTorrentTime": 168
+  },
 
   "log": {
     "LogLevel": "info",

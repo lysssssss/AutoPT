@@ -10,6 +10,7 @@ from autopt.AutoPT_FRDS import AutoPT_FRDS
 from autopt.AutoPT_MTEAM import AutoPT_MTEAM
 from autopt.AutoPT_PTER import AutoPT_PTER
 from autopt.AutoPT_PTHOME import AutoPT_PTHOME
+from autopt.AutoPT_SOULVOICE import AutoPT_SOULVOICE
 from autopt.AutoPT_TJU import AutoPT_TJU
 from autopt.AutoPT_TTG import AutoPT_TTG
 from autopt.AutoPT_LEMONHD import AutoPT_LEMONHD
@@ -31,6 +32,7 @@ def run():
         auto_frds = None
         auto_ttg = None
         auto_lemonhd = None
+        auto_soulvoice = None
 
         Runqbittorrent()
 
@@ -45,6 +47,7 @@ def run():
                 'frds': auto_frds,
                 'ttg': auto_ttg,
                 'lemonhd': auto_lemonhd,
+                'soulvoice': auto_soulvoice
             }
         }
         gl.set_value('allref', refconfig)
@@ -64,6 +67,8 @@ def run():
         refconfig['ref']['ttg'] = auto_ttg
         auto_lemonhd = AutoPT_LEMONHD()
         refconfig['ref']['lemonhd'] = auto_lemonhd
+        auto_soulvoice = AutoPT_SOULVOICE()
+        refconfig['ref']['soulvoice'] = auto_soulvoice
 
         if gl.get_value('config').switch('byr'):
             if maxtime % gl.get_value('config').intervaltime('byr') != 0:
@@ -89,6 +94,9 @@ def run():
         if gl.get_value('config').switch('lemonhd'):
             if maxtime % gl.get_value('config').intervaltime('lemonhd') != 0:
                 maxtime *= gl.get_value('config').intervaltime('lemonhd')
+        if gl.get_value('config').switch('soulvoice'):
+            if maxtime % gl.get_value('config').intervaltime('soulvoice') != 0:
+                maxtime *= gl.get_value('config').intervaltime('soulvoice')
 
         manager = Manager()
         if maxtime % (6 * 3600) != 0:
@@ -103,6 +111,10 @@ def run():
                 manager.checkprttracker()
                 manager.recheckall()
                 manager.checkemptydir()
+            if gl.get_value('thread_flag') and gl.get_value('config').switch('soulvoice') and counttime % gl.get_value(
+                    'config').intervaltime('soulvoice') == 0:
+                auto_soulvoice.start()
+                pass
             if gl.get_value('thread_flag') and gl.get_value('config').switch('lemonhd') and counttime % gl.get_value(
                     'config').intervaltime('lemonhd') == 0:
                 auto_lemonhd.start()
@@ -135,6 +147,8 @@ def run():
             time.sleep(1)
     except BaseException:
         logger.exception(traceback.format_exc())
+        # TODO 测试qb退出连接不上时候不会自动报错
+        # gl.set_value('thread_flag', False)
         # traceback.print_exc(file=open('treace.txt', 'w+'))
 
 

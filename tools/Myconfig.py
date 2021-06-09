@@ -24,6 +24,8 @@ class Config(object):
             return self.lemonhdconfig
         elif key.upper() == 'TTG':
             return self.ttgconfig
+        elif key.upper() == 'SOULVOICE':
+            return self.soulvoiceconfig
         elif key.upper() == 'ALL':
             return {
                 'BYR': self.byrconfig,
@@ -33,6 +35,7 @@ class Config(object):
                 'PTHOME': self.pthomeconfig,
                 'FRDS': self.frdsconfig,
                 'TTG': self.ttgconfig,
+                'SOULVOICE': self.soulvoiceconfig,
                 'LEMONHD': self.lemonhdconfig,
             }
         else:
@@ -175,6 +178,23 @@ class Config(object):
             'urlparam': 'https=1&',
             'root': 'https://lemonhd.org/'
         }
+        self.soulvoiceconfig = {
+            'switch': False,
+            'onlyattendance': False,
+            'name': 'SoulVoice',
+            'passkey': '',
+            'level': 0,
+            'maincategory': '',
+            'subcategory': [],
+            'capacity': 0,
+            'capacityuint': 'TB',
+            'capacitynum': 0,
+            'intervaltime': 30,
+            'keeptorrenttime': 168,
+            'uploadspeedlimit': 0,
+            'urlparam': 'https=1&',
+            'root': 'https://pt.soulvoice.club/'
+        }
         self.qbtconfig = {
             'url': '',
             'path': '',
@@ -198,6 +218,7 @@ class Config(object):
             self.readfrdsconfig(paras)
             self.readttgconfig(paras)
             self.readlemonhdconfig(paras)
+            self.readsoulvoiceconfig(paras)
             self.readreseedconfig(paras)
         else:
             self._logsavetime = 7
@@ -259,6 +280,12 @@ class Config(object):
         if 'LEMONHD' in param:
             paras = param['LEMONHD']
             self.readcommonconfig(paras, self.lemonhdconfig)
+            # To add custom config here
+
+    def readsoulvoiceconfig(self, param):
+        if 'SoulVoice' in param:
+            paras = param['SoulVoice']
+            self.readcommonconfig(paras, self.soulvoiceconfig)
             # To add custom config here
 
     def readcommonconfig(self, paras, pt_config):
@@ -354,6 +381,7 @@ class Config(object):
             'FRDS': self.frdsconfig,
             'TTG': self.ttgconfig,
             'LEMONHD': self.lemonhdconfig,
+            'SOULVOICE': self.soulvoiceconfig,
             'RESEED': self.reseedconfig
         }
 
