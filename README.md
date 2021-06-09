@@ -10,8 +10,8 @@ This is a program for auto download PT torrents. It uses QBittorrent to manage t
 仓库直链](https://github.com/ledccn/IYUUAutoReseed)  
 
 ## 支持环境  
-Works on QBittorrent version 4.1.9-4.2.5, Windows 10  
-支持win10下使用QB4.1.9-4.2.5版本。(其他版本不一定兼容)  
+Works on QBittorrent version 4.1.9-4.3.5, Windows 10  
+支持win10下使用QB4.1.9-4.3.5版本。(其他版本不一定兼容)  
 
 ## 支持站点  
 Support PT Station: BYR, TJU, PTER, MTeam, PTHome, FRDS, TTG, LEMONHD, SoulVoice  
