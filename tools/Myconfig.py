@@ -109,7 +109,7 @@ class Config(object):
             'keeptorrenttime': 168,
             'uploadspeedlimit': 0,
             'urlparam': 'ipv6=1&https=1&',
-            'root': 'https://pt.m-team.cc/'
+            'root': 'https://kp.m-team.cc/'
         }
         self.pthomeconfig = {
             'switch': False,
