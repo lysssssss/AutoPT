@@ -236,6 +236,7 @@ class AutoPT(ABC):
         :filename: torrent filename
         """
         url = self._root + 'download.php?' + self.config['urlparam'] + 'id=' + id_
+        self.logger.debug('Download URL = ' + url)
         trytime = 0
         req = None
 
@@ -263,6 +264,7 @@ class AutoPT(ABC):
         if isinstance(id_, int):
             id_ = str(id_)
         url = self._root + 'download.php?' + self.config['urlparam'] + 'id=' + id_ + '&passkey=' + self.psk
+        self.logger.debug('Download URL = ' + url)
         trytime = 0
         req = None
 
@@ -270,7 +272,7 @@ class AutoPT(ABC):
             try:
                 req = self._session.get(url, timeout=(30, 60))
                 #  60为b'<', 如果get出来的是html而不是种子字节流说明种子被删除了或其他原因
-                if req.status_code == 200 and req.content[0] != 60:
+                if req.status_code == 200 and req.content[0] != 60 and req.content != b'Old Passkey no Support!':
                     # 第二个返回值为这种子是否还存在的标志，提供的是接口
                     return req, True
                 elif req.status_code == 404:
