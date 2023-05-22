@@ -1,6 +1,6 @@
 fake_useragent==0.1.11
 bencode.py==4.0.0
-requests==2.24.0
+requests==2.31.0
 jsmin==2.2.2
 Pypubsub==4.0.3
 demjson==2.2.4
